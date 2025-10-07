@@ -1,7 +1,7 @@
 use clap::Error;
 use serialport::SerialPort;
 
-use crate::sci_frame_protocol::encode_frame;
+use crate::sci_frame_protocol::{decode_frame, encode_frame};
 
 pub enum ResetType {
     Hardreset = 0,
@@ -26,6 +26,9 @@ pub fn command_reset_device(
 
     let mut read_buf: [u8; 64] = [0; 64];
     let size = port.read(&mut read_buf)?;
+
+    let read_data = decode_frame(&read_buf[0..size]);
+    println!("Decoded {:X?}", read_data);
 
     println!("Reset sucessful");
     return Ok(());
