@@ -3,7 +3,7 @@ use std::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
-use crate::sci_frame_protocol::{decode_frame, encode_frame};
+use crate::{sci_frame_protocol::{decode_frame, encode_frame}, types::{StorageBlockId, StorageBlockLength, StorageBlockOffset, StorageBlockPermissions, StorageBlockVersion, SwionResult}};
 
 pub enum ResetType {
     Hardreset = 0,
@@ -32,10 +32,10 @@ pub fn command_reset_device(
 
 #[derive(Debug)]
 pub struct StorageBlockInfo {
-    id: u16,
-    size: u16,
-    version: u8,
-    permissions: u8,
+    pub id: StorageBlockId,
+    pub length: StorageBlockLength,
+    pub version: StorageBlockVersion,
+    pub permissions: StorageBlockPermissions,
 }
 
 pub fn command_storage_block_info(
@@ -53,9 +53,9 @@ pub fn command_storage_block_info(
 
     Ok(StorageBlockInfo {
         id: BigEndian::read_u16(&rsp[3..5]),
-        size: BigEndian::read_u16(&rsp[5..7]),
+        length: BigEndian::read_u16(&rsp[5..7]),
         version: rsp[7],
-        permissions: rsp[8],
+        permissions: StorageBlockPermissions::from(rsp[8]),
     })
 }
 
@@ -75,10 +75,10 @@ pub fn command_storage_directory_size(
 
 #[derive(Debug)]
 pub struct PartialStorageBlock {
-    id: u16,
-    offset: u16,
-    length: u16,
-    result: u8,
+    id: StorageBlockId,
+    offset: StorageBlockOffset,
+    length: StorageBlockLength,
+    result: SwionResult,
     data: Vec<u8>,
 }
 
@@ -103,7 +103,7 @@ pub fn command_read_storage_block_partial(
         id: BigEndian::read_u16(&rsp[3..]),
         offset: BigEndian::read_u16(&rsp[5..]),
         length: BigEndian::read_u16(&rsp[7..]),
-        result: rsp[9],
+        result: SwionResult::from_repr(rsp[9]).unwrap_or(SwionResult::Error),
         data: Vec::from(&rsp[10..]),
     };
 
