@@ -1,4 +1,5 @@
 mod commands;
+mod phoenix_encoding;
 mod sci_frame_protocol;
 mod tasks;
 mod types;
@@ -8,7 +9,10 @@ use std::time::Duration;
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::{commands::{command_read_storage_block_partial, StorageBlockInfo}, tasks::task_read_storage_directory};
+use crate::{
+    commands::{StorageBlockInfo, command_read_serial_number, command_read_storage_block_partial},
+    tasks::task_read_storage_directory,
+};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -41,7 +45,13 @@ fn print_storage_dir(dir: Vec<StorageBlockInfo>) {
     println!("| ID   | Version | Size   | Flags |");
 
     for block in dir {
-        println!("| {:>4x} | {:>7} | {:>6} | {:>5} |", block.id, block.version, block.length, block.permissions.flag_string());
+        println!(
+            "| {:>4x} | {:>7} | {:>6} | {:>5} |",
+            block.id,
+            block.version,
+            block.length,
+            block.permissions.flag_string()
+        );
     }
 }
 
@@ -57,6 +67,11 @@ fn main() {
         .expect("Failed to open port");
 
     let _ = handshake(&mut port);
+
+    match command_read_serial_number(&mut port) {
+        Ok(sn) => println!("Serial number: {sn}"),
+        Err(e) => println!("Error: {e}"),
+    }
 
     match task_read_storage_directory(&mut port) {
         Ok(dir) => print_storage_dir(dir),

@@ -3,7 +3,14 @@ use std::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
-use crate::{sci_frame_protocol::{decode_frame, encode_frame}, types::{StorageBlockId, StorageBlockLength, StorageBlockOffset, StorageBlockPermissions, StorageBlockVersion, SwionResult}};
+use crate::{
+    phoenix_encoding::decode_string,
+    sci_frame_protocol::{decode_frame, encode_frame},
+    types::{
+        StorageBlockId, StorageBlockLength, StorageBlockOffset, StorageBlockPermissions,
+        StorageBlockVersion, SwionResult,
+    },
+};
 
 pub enum ResetType {
     Hardreset = 0,
@@ -13,6 +20,20 @@ pub enum ResetType {
     BootupWithoutConfiguration,
     BootupToGsmTunnel,
     BootupToBootloader,
+}
+
+pub fn command_read_serial_number(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<String, Box<dyn Error>> {
+    let msg = [0x00, 0x03, 0x02];
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    Ok(decode_string(&rsp[3..]))
 }
 
 pub fn command_reset_device(

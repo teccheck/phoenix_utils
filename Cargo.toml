@@ -8,5 +8,6 @@ bitmask-enum = "2.2.5"
 byteorder = "1.5.0"
 clap = { version = "4.5.48", features = ["derive"] }
 crc = "3.3.0"
+encoding = "0.2.33"
 serialport = "4.7.3"
 strum = { version = "0.27.2", features = ["derive"] }
