@@ -1,6 +1,4 @@
-mod reset_device;
-mod storage;
-mod error;
+mod commands;
 mod sci_frame_protocol;
 
 use std::time::Duration;
@@ -8,10 +6,7 @@ use std::time::Duration;
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::reset_device::ResetType;
-use crate::reset_device::command_reset_device;
-use crate::storage::command_storage_block_info;
-use crate::storage::command_storage_directory_size;
+use crate::commands::command_storage_directory_size;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
