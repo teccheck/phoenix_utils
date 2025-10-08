@@ -1,12 +1,13 @@
 mod commands;
 mod sci_frame_protocol;
+mod tasks;
 
 use std::time::Duration;
 
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::commands::{command_storage_block_info, command_storage_directory_size};
+use crate::{commands::{command_read_storage_block_partial, command_storage_block_info, command_storage_directory_size}, tasks::task_read_storage_directory};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -48,13 +49,8 @@ fn main() {
 
     let _ = handshake(&mut port);
 
-    match command_storage_directory_size(&mut port) {
-        Ok(size) => println!("Read size {size}"),
-        Err(e) => println!("Error {e}"),
-    }
-
-    match command_storage_block_info(&mut port, 0) {
-        Ok(info) => println!("Read block {:?}", info),
+    match command_read_storage_block_partial(&mut port, 20508, 0, 16) {
+        Ok(block) => println!("Read partial {:?}", block),
         Err(e) => println!("Error {e}"),
     }
 }

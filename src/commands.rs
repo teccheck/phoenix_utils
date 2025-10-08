@@ -72,3 +72,40 @@ pub fn command_storage_directory_size(
 
     Ok(BigEndian::read_u16(&rsp[3..5]))
 }
+
+#[derive(Debug)]
+pub struct PartialStorageBlock {
+    id: u16,
+    offset: u16,
+    length: u16,
+    result: u8,
+    data: Vec<u8>,
+}
+
+pub fn command_read_storage_block_partial(
+    port: &mut Box<dyn SerialPort>,
+    id: u16,
+    offset: u16,
+    length: u16,
+) -> Result<PartialStorageBlock, Box<dyn Error>> {
+    let mut msg = [0x14, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+    BigEndian::write_u16(&mut msg[3..5], id);
+    BigEndian::write_u16(&mut msg[5..7], offset);
+    BigEndian::write_u16(&mut msg[7..9], length);
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    let block = PartialStorageBlock {
+        id: BigEndian::read_u16(&rsp[3..]),
+        offset: BigEndian::read_u16(&rsp[5..]),
+        length: BigEndian::read_u16(&rsp[7..]),
+        result: rsp[9],
+        data: Vec::from(&rsp[10..]),
+    };
+
+    Ok(block)
+}
