@@ -1,4 +1,6 @@
 mod reset_device;
+mod storage;
+mod error;
 mod sci_frame_protocol;
 
 use std::time::Duration;
@@ -8,6 +10,8 @@ use serialport::SerialPort;
 
 use crate::reset_device::ResetType;
 use crate::reset_device::command_reset_device;
+use crate::storage::command_storage_block_info;
+use crate::storage::command_storage_directory_size;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -48,5 +52,9 @@ fn main(){
         .expect("Failed to open port");
 
     handshake(&mut port);
-    command_reset_device(&mut port, ResetType::Softreset);
+    //command_reset_device(&mut port, ResetType::Softreset);
+    match command_storage_directory_size(&mut port) {
+        Ok(size) => println!("Read size {size}"),
+        Err(e) => println!("Error {e}"),
+    }
 }

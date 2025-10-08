@@ -1,3 +1,5 @@
+use std::io::Error;
+
 const CRC8: crc::Crc<u8> = crc::Crc::<u8>::new(&crc::Algorithm {
     width: 8,
     poly: 0x31,
@@ -12,7 +14,7 @@ const FRAME_MARKER: u8 = 0x7E;
 const FRAME_ESCAPE: u8 = 0x7D;
 const FRAME_ESCAPE_XOR: u8 = 0x20;
 
-fn stuff_bytes(data: &[u8]) -> Vec<u8> {
+fn stuff(data: &[u8]) -> Vec<u8> {
     let mut new_data: Vec<u8> = Vec::new();
 
     for byte in data {
@@ -27,7 +29,7 @@ fn stuff_bytes(data: &[u8]) -> Vec<u8> {
     return new_data;
 }
 
-fn unstuff_bytes(data: &[u8]) -> Vec<u8> {
+fn unstuff(data: &[u8]) -> Vec<u8> {
     let mut new_data: Vec<u8> = Vec::new();
     let mut escape = false;
 
@@ -48,8 +50,8 @@ fn unstuff_bytes(data: &[u8]) -> Vec<u8> {
 }
 
 pub fn encode_frame(data: &[u8]) -> Vec<u8> {
-    let mut stuffed_bytes = stuff_bytes(data);
-    let mut stuffed_checksum = stuff_bytes(&[CRC8.checksum(data)]);
+    let mut stuffed_bytes = stuff(data);
+    let mut stuffed_checksum = stuff(&[CRC8.checksum(data)]);
 
     let mut frame = Vec::new();
     frame.push(FRAME_MARKER);
@@ -59,17 +61,20 @@ pub fn encode_frame(data: &[u8]) -> Vec<u8> {
     return frame;
 }
 
-pub fn decode_frame(data: &[u8]) -> Option<Vec<u8>> {
-    if data[0] != FRAME_MARKER || *data.last()? != FRAME_MARKER {
-        return None;
+pub fn decode_frame(data: &[u8]) -> Result<Vec<u8>, Error> {
+    if data[0] != FRAME_MARKER {
+        return Err(Error::new(std::io::ErrorKind::InvalidData, "sci start frame marker missing"));
     }
 
-    let unstuffed_bytes = unstuff_bytes(&data[1..data.len() - 1]);
-    let checksum = CRC8.checksum(&unstuffed_bytes[..unstuffed_bytes.len() - 1]);
-
-    if checksum == *unstuffed_bytes.last()? {
-        return Some(unstuffed_bytes[..&unstuffed_bytes.len() - 1].to_vec());
+    if !matches!(data.last(), Some(&FRAME_MARKER)) {
+        return Err(Error::new(std::io::ErrorKind::InvalidData, "sci end frame marker missing"));
     }
 
-    return None;
+    let unstuffed_data = unstuff(&data[1..data.len() - 1]);
+
+    if unstuffed_data.last().is_some_and(|b| *b != CRC8.checksum(&unstuffed_data[..unstuffed_data.len() - 1])) {
+        return Err(Error::new(std::io::ErrorKind::InvalidData, "sci frame checksum is incorrect"));
+    }
+
+    Ok(unstuffed_data[..&unstuffed_data.len() - 1].to_vec())
 }
