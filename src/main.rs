@@ -25,7 +25,7 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
     let mut read_buf: [u8; 2] = [0; 2];
 
     loop {
-        port.write(&hello)?;
+        port.write_all(&hello)?;
         let size = port.read(&mut read_buf)?;
 
         if size == 2 && read_buf.starts_with(&expected) {
@@ -35,7 +35,7 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
     }
 }
 
-fn main(){
+fn main() {
     let args = CmdArgs::parse();
 
     let mut port = serialport::new(args.port, args.baud_rate)
@@ -46,7 +46,7 @@ fn main(){
         .open()
         .expect("Failed to open port");
 
-    handshake(&mut port);
+    let _ = handshake(&mut port);
 
     match command_storage_directory_size(&mut port) {
         Ok(size) => println!("Read size {size}"),
