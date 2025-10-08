@@ -6,7 +6,7 @@ use std::time::Duration;
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::commands::command_storage_directory_size;
+use crate::commands::{command_storage_block_info, command_storage_directory_size};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -47,9 +47,14 @@ fn main(){
         .expect("Failed to open port");
 
     handshake(&mut port);
-    //command_reset_device(&mut port, ResetType::Softreset);
+
     match command_storage_directory_size(&mut port) {
         Ok(size) => println!("Read size {size}"),
+        Err(e) => println!("Error {e}"),
+    }
+
+    match command_storage_block_info(&mut port, 0) {
+        Ok(info) => println!("Read block {:?}", info),
         Err(e) => println!("Error {e}"),
     }
 }
