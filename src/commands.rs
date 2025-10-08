@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use byteorder::{BigEndian, ByteOrder};
+use byteorder::{BigEndian, ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
 use crate::{
@@ -22,16 +22,29 @@ pub enum ResetType {
     BootupToBootloader,
 }
 
+pub fn command_read_firmware_version(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<String, Box<dyn Error>> {
+    command_read_version(port, 0x01)
+}
 pub fn command_read_serial_number(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
-    let msg = [0x00, 0x03, 0x02];
+    command_read_version(port, 0x02)
+}
+
+pub fn command_read_version(
+    port: &mut Box<dyn SerialPort>,
+    command_type: u8,
+) -> Result<String, Box<dyn Error>> {
+    let msg = [0x00, 0x03, command_type];
     let frame = encode_frame(&msg);
     port.write_all(&frame)?;
 
     let mut read_buf: [u8; 64] = [0; 64];
     let size = port.read(&mut read_buf)?;
     let rsp = decode_frame(&read_buf[..size])?;
+    println!("Version read rsp {:x?}", rsp);
 
     Ok(decode_string(&rsp[3..]))
 }
@@ -129,4 +142,73 @@ pub fn command_read_storage_block_partial(
     };
 
     Ok(block)
+}
+
+// Maybe. Also what to send here?
+pub fn command_write_feature_flags (
+    port: &mut Box<dyn SerialPort>,
+    flags: &[u8]
+) -> Result<(), Box<dyn Error>> {
+    let msg = [0x43, 0x03, 0x00];
+    let mut whole: Vec<u8> = Vec::new();
+    whole.extend_from_slice(&msg);
+    whole.extend_from_slice(flags);
+
+    let frame = encode_frame(&whole);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    if rsp.len() < 5 {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "writing feature flag failed",
+        ).into());
+    }
+
+    Ok(())
+}
+
+pub fn command_read_unique_id (
+    port: &mut Box<dyn SerialPort>,
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let msg = [0x43, 0x03, 0x01];
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    Ok(rsp[3..].to_vec())
+}
+
+pub fn command_read_feature_flags_enabled (
+    port: &mut Box<dyn SerialPort>,
+) -> Result<u32, Box<dyn Error>> {
+    let msg = [0x43, 0x03, 0x02];
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    Ok(LittleEndian::read_u32(&rsp[3..]))
+}
+
+pub fn command_read_feature_flags_available (
+    port: &mut Box<dyn SerialPort>,
+) -> Result<u32, Box<dyn Error>> {
+    let msg = [0x43, 0x03, 0x03];
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    Ok(LittleEndian::read_u32(&rsp[3..]))
 }

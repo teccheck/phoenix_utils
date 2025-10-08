@@ -27,10 +27,46 @@ pub enum StorageBlockPermissions {
 
 impl StorageBlockPermissions {
     pub fn flag_string(&self) -> String {
-        let read = if self.contains(StorageBlockPermissions::Read){"R"} else {"-"};
-        let write = if self.contains(StorageBlockPermissions::Write){"W"} else {"-"};
-        let i = if self.contains(StorageBlockPermissions::I){"I"} else {"-"};
-        let p = if self.contains(StorageBlockPermissions::P){"P"} else {"-"};
+        let read = if self.contains(StorageBlockPermissions::Read) {
+            "R"
+        } else {
+            "-"
+        };
+        let write = if self.contains(StorageBlockPermissions::Write) {
+            "W"
+        } else {
+            "-"
+        };
+        let i = if self.contains(StorageBlockPermissions::I) {
+            "I"
+        } else {
+            "-"
+        };
+        let p = if self.contains(StorageBlockPermissions::P) {
+            "P"
+        } else {
+            "-"
+        };
         return format!("{}{}{}{}", read, write, i, p);
     }
+}
+
+#[bitmask(u32)]
+enum FeatureFlag {
+    Idea = 1,
+    MultiChannel = 2,
+    RssiFeedback = 8,
+    GuardProtected = 16,
+    GuardConnected = 32,
+    GuardBgr = 64,
+    Glob = 128,
+    BleFeedback = 256,
+    BleHybridAlert = 512,
+    Aes = 1024,
+    Boskrypt = 2048,
+    Pocsag = 4096,
+    Flex = 8192,
+    Sos = 16384,
+    Tts = 32768,
+    Dcsa = 65536,
 }

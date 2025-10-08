@@ -9,9 +9,9 @@ use std::time::Duration;
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::{
-    commands::{StorageBlockInfo, command_read_serial_number, command_read_storage_block_partial},
-    tasks::task_read_storage_directory,
+use crate::commands::{
+    StorageBlockInfo, command_read_feature_flags_available, command_read_feature_flags_enabled,
+    command_read_firmware_version, command_read_serial_number, command_read_unique_id,
 };
 
 #[derive(Parser, Debug)]
@@ -69,17 +69,27 @@ fn main() {
     let _ = handshake(&mut port);
 
     match command_read_serial_number(&mut port) {
-        Ok(sn) => println!("Serial number: {sn}"),
+        Ok(r) => println!("SN: {}", r),
         Err(e) => println!("Error: {e}"),
     }
 
-    match task_read_storage_directory(&mut port) {
-        Ok(dir) => print_storage_dir(dir),
-        Err(e) => println!("Err: {}", e),
+    match command_read_firmware_version(&mut port) {
+        Ok(r) => println!("Firm: {}", r),
+        Err(e) => println!("Error: {e}"),
     }
 
-    //match command_read_storage_block_partial(&mut port, 20508, 0, 16) {
-    //    Ok(block) => println!("Read partial {:?}", block),
-    //    Err(e) => println!("Error {e}"),
-    //}
+    match command_read_feature_flags_available(&mut port) {
+        Ok(r) => println!("Flags available: {r:b}"),
+        Err(e) => println!("Error: {e}"),
+    }
+
+    match command_read_feature_flags_enabled(&mut port) {
+        Ok(r) => println!("Flags enabled: {r:b}"),
+        Err(e) => println!("Error: {e}"),
+    }
+
+    match command_read_unique_id(&mut port) {
+        Ok(r) => println!("Unique ID: {:x?}", r),
+        Err(e) => println!("Error: {e}"),
+    }
 }
