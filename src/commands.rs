@@ -21,21 +21,14 @@ pub fn command_reset_device(
 ) -> Result<(), Box<dyn Error>> {
     let msg = [0x01, 0x03, 0x00, reset_type as u8];
     let frame = encode_frame(&msg);
-
-    println!("Trying frame {:X?}", frame);
-
-    port.write(&frame)?;
+    port.write_all(&frame)?;
 
     let mut read_buf: [u8; 64] = [0; 64];
     let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
 
-    let read_data = decode_frame(&read_buf[0..size]);
-    println!("Decoded {:X?}", read_data);
-
-    println!("Reset sucessful");
-    return Ok(());
+    Ok(())
 }
-
 
 #[derive(Debug)]
 pub struct StorageBlockInfo {
@@ -45,7 +38,10 @@ pub struct StorageBlockInfo {
     permissions: u8,
 }
 
-pub fn command_storage_block_info(port: &mut Box<dyn SerialPort>, index: u16) -> Result<StorageBlockInfo, Box<dyn Error>> {
+pub fn command_storage_block_info(
+    port: &mut Box<dyn SerialPort>,
+    index: u16,
+) -> Result<StorageBlockInfo, Box<dyn Error>> {
     let mut msg = [0x14, 0x03, 0x11, 0x00, 0x00];
     BigEndian::write_u16(&mut msg[3..], index);
     let frame = encode_frame(&msg);
@@ -55,7 +51,7 @@ pub fn command_storage_block_info(port: &mut Box<dyn SerialPort>, index: u16) ->
     let size = port.read(&mut read_buf)?;
     let rsp = decode_frame(&read_buf[..size])?;
 
-    Ok(StorageBlockInfo{
+    Ok(StorageBlockInfo {
         id: BigEndian::read_u16(&rsp[3..5]),
         size: BigEndian::read_u16(&rsp[5..7]),
         version: rsp[7],
@@ -68,7 +64,7 @@ pub fn command_storage_directory_size(
 ) -> Result<u16, Box<dyn Error>> {
     let msg = [0x14, 0x03, 0x10];
     let frame = encode_frame(&msg);
-    port.write(&frame)?;
+    port.write_all(&frame)?;
 
     let mut read_buf: [u8; 64] = [0; 64];
     let size = port.read(&mut read_buf)?;
