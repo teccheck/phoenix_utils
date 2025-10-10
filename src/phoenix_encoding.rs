@@ -1,4 +1,48 @@
-use encoding::all::ISO_8859_1;
+use encoding::{Encoding, all::ISO_8859_1};
+
+pub fn encode_string(text: &str) -> Vec<u8> {
+    text.chars().map(encode_char).collect()
+}
+
+fn encode_char(c: char) -> u8 {
+    let byte = match c {
+        'Š' => 128,
+        'š' => 129,
+        'Ž' => 130,
+        'ž' => 131,
+        'Ć' => 132,
+        'ć' => 133,
+        'Č' => 134,
+        'č' => 135,
+        '▒' => 136,
+        'ą' => 137,
+        'Ď' => 138,
+        'ď' => 139,
+        'Ś' => 140,
+        'Ť' => 141,
+        'Ż' => 142,
+        'Ź' => 143,
+        'ę' => 144,
+        'ě' => 145,
+        'Ł' => 146,
+        'ł' => 147,
+        'ń' => 148,
+        'Ň' => 149,
+        'ň' => 150,
+        'Ř' => 151,
+        'ř' => 152,
+        'ů' => 153,
+        ' ' => 154,
+        'ś' => 156,
+        'ť' => 157,
+        'ż' => 158,
+        'ź' => 159,
+        _ => c as u8
+    };
+
+    println!("Char: {c}, byte: {byte}");
+    return byte;
+}
 
 pub fn decode_string(data: &[u8]) -> String {
     data.iter().map(decode_char).collect()

@@ -9,10 +9,7 @@ use std::time::Duration;
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::commands::{
-    StorageBlockInfo, command_read_feature_flags_available, command_read_feature_flags_enabled,
-    command_read_firmware_version, command_read_serial_number, command_read_unique_id,
-};
+use crate::commands::StorageBlockInfo;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -65,31 +62,6 @@ fn main() {
         .timeout(Duration::from_millis(1000))
         .open()
         .expect("Failed to open port");
-
+    
     let _ = handshake(&mut port);
-
-    match command_read_serial_number(&mut port) {
-        Ok(r) => println!("SN: {}", r),
-        Err(e) => println!("Error: {e}"),
-    }
-
-    match command_read_firmware_version(&mut port) {
-        Ok(r) => println!("Firm: {}", r),
-        Err(e) => println!("Error: {e}"),
-    }
-
-    match command_read_feature_flags_available(&mut port) {
-        Ok(r) => println!("Flags available: {r:b}"),
-        Err(e) => println!("Error: {e}"),
-    }
-
-    match command_read_feature_flags_enabled(&mut port) {
-        Ok(r) => println!("Flags enabled: {r:b}"),
-        Err(e) => println!("Error: {e}"),
-    }
-
-    match command_read_unique_id(&mut port) {
-        Ok(r) => println!("Unique ID: {:x?}", r),
-        Err(e) => println!("Error: {e}"),
-    }
 }
