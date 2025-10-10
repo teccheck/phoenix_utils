@@ -72,6 +72,24 @@ pub struct StorageBlockInfo {
     pub permissions: StorageBlockPermissions,
 }
 
+pub fn command_delete_storage_block(
+    port: &mut Box<dyn SerialPort>,
+    id: StorageBlockId,
+) -> Result<(), Box<dyn Error>> {
+    let mut msg = [0x14, 0x03, 0x02, 0x00, 0x00];
+    BigEndian::write_u16(&mut msg[3..], id);
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    println!("rsp: {:x?}", rsp);
+
+    Ok(())
+}
+
 pub fn command_read_storage_block_info(
     port: &mut Box<dyn SerialPort>,
     index: u16,
