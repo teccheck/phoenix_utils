@@ -72,7 +72,7 @@ pub struct StorageBlockInfo {
     pub permissions: StorageBlockPermissions,
 }
 
-pub fn command_storage_block_info(
+pub fn command_read_storage_block_info(
     port: &mut Box<dyn SerialPort>,
     index: u16,
 ) -> Result<StorageBlockInfo, Box<dyn Error>> {
@@ -109,11 +109,11 @@ pub fn command_storage_directory_size(
 
 #[derive(Debug)]
 pub struct PartialStorageBlock {
-    id: StorageBlockId,
-    offset: StorageBlockOffset,
-    length: StorageBlockLength,
-    result: SwionResult,
-    data: Vec<u8>,
+    pub id: StorageBlockId,
+    pub offset: StorageBlockOffset,
+    pub length: StorageBlockLength,
+    pub result: SwionResult,
+    pub data: Vec<u8>,
 }
 
 pub fn command_read_storage_block_partial(
@@ -144,7 +144,7 @@ pub fn command_read_storage_block_partial(
     Ok(block)
 }
 
-// Maybe. Also what to send here?
+// No idea what to send here?
 pub fn command_write_feature_flags (
     port: &mut Box<dyn SerialPort>,
     flags: &[u8]
@@ -157,8 +157,10 @@ pub fn command_write_feature_flags (
     let frame = encode_frame(&whole);
     port.write_all(&frame)?;
 
-    let mut read_buf: [u8; 64] = [0; 64];
+    let mut read_buf: [u8; 256] = [0; 256];
     let size = port.read(&mut read_buf)?;
+    println!("Readbuf: {:x?}", read_buf);
+
     let rsp = decode_frame(&read_buf[..size])?;
 
     if rsp.len() < 5 {
