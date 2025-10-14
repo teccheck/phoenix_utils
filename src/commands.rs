@@ -69,7 +69,7 @@ pub fn command_read_feature_flags(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFeatureFlags, &[])?;
-    Ok(FeatureFlag::from(BigEndian::read_u32(&rsp[3..])))
+    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
 pub fn command_reset_device(

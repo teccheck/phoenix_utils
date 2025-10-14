@@ -9,16 +9,19 @@ use std::time::Duration;
 use clap::{Error, Parser};
 use serialport::SerialPort;
 
-use crate::commands::StorageBlockInfo;
+use crate::{commands::StorageBlockInfo, tasks::task_print_device_info};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct CmdArgs {
-    #[arg(short, long, help = "Serial port to use (eg. /dev/ttyUSB0)")]
+    #[arg(short, long, default_value_t = ("/dev/ttyUSB0".to_string()), help = "Serial port to use")]
     port: String,
 
-    #[arg(short, long, default_value_t = 57600, help = "Baud rate (eg. 57600)")]
+    #[arg(short, long, default_value_t = 57600, help = "Baud rate")]
     baud_rate: u32,
+
+    #[arg(short, long, default_value_t = true, help = "Show device info")]
+    info: bool
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
@@ -55,6 +58,9 @@ fn print_storage_dir(dir: Vec<StorageBlockInfo>) {
 fn main() {
     let args = CmdArgs::parse();
 
+    println!("Welcome to DE10A Utils");
+    println!("Trying port {} with baud rate {}", args.port, args.baud_rate);
+
     let mut port = serialport::new(args.port, args.baud_rate)
         .data_bits(serialport::DataBits::Eight)
         .parity(serialport::Parity::None)
@@ -64,4 +70,10 @@ fn main() {
         .expect("Failed to open port");
     
     let _ = handshake(&mut port);
+
+    println!("");
+
+    if args.info {
+        task_print_device_info(&mut port);
+    }
 }

@@ -1,3 +1,5 @@
+use std::fmt::{Display, Write};
+
 use bitmask_enum::bitmask;
 use strum::FromRepr;
 
@@ -188,6 +190,7 @@ impl StorageBlockPermissions {
 }
 
 #[bitmask(u32)]
+#[bitmask_config(vec_debug, flags_iter)]
 pub enum FeatureFlag {
     Idea = 1,
     MultiChannel = 2,
@@ -205,4 +208,28 @@ pub enum FeatureFlag {
     Sos = 16384,
     Tts = 32768,
     Dcsa = 65536,
+}
+
+impl Display for FeatureFlag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let flags: Vec<&'static str> = FeatureFlag::flags().filter(|(_, f)| self.contains(*f)).map(|(n, _)| *n).collect();
+        write!(f, "{}", flags.join(", "))?;
+        Ok(())
+    }
+}
+
+pub struct DeviceInfo {
+    pub serial_number: String,
+    pub firmware_version: String,
+    pub feature_flags: FeatureFlag,
+}
+
+impl Display for DeviceInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Serial Number: {}", self.serial_number)?;
+        writeln!(f, "Firmware Version: {}", self.firmware_version)?;
+        writeln!(f, "Feature Flags: {}", self.feature_flags)?;
+
+        Ok(())
+    }
 }
