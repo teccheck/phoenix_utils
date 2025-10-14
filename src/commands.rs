@@ -7,10 +7,39 @@ use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
     types::{
-        StorageBlockId, StorageBlockLength, StorageBlockOffset, StorageBlockPermissions,
-        StorageBlockVersion, SwionResult,
+        CommandType, FeatureFlag, StorageBlockId, StorageBlockLength, StorageBlockOffset,
+        StorageBlockPermissions, StorageBlockVersion, SwionResult,
     },
 };
+
+fn send_command(
+    port: &mut Box<dyn SerialPort>,
+    command_type: CommandType,
+    data: &[u8],
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let cmd = command_type as u16;
+    send_command_raw(port, (cmd >> 8) as u8, (cmd & 0xFF) as u8, data)
+}
+
+fn send_command_raw(
+    port: &mut Box<dyn SerialPort>,
+    command_type: u8,
+    command_sub_typy: u8,
+    data: &[u8],
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let header = [command_type, 0x03, command_sub_typy];
+    let mut msg = Vec::from(header);
+    msg.extend_from_slice(data);
+
+    let frame = encode_frame(&msg);
+    port.write_all(&frame)?;
+
+    let mut read_buf: [u8; 64] = [0; 64];
+    let size = port.read(&mut read_buf)?;
+    let rsp = decode_frame(&read_buf[..size])?;
+
+    Ok(rsp)
+}
 
 pub enum ResetType {
     Hardreset = 0,
@@ -25,42 +54,29 @@ pub enum ResetType {
 pub fn command_read_firmware_version(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
-    command_read_version(port, 0x01)
+    let rsp = send_command(port, CommandType::SysReadFirmwareVersion, &[])?;
+    Ok(decode_string(&rsp))
 }
+
 pub fn command_read_serial_number(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
-    command_read_version(port, 0x02)
+    let rsp = send_command(port, CommandType::SysReadSerialNumber, &[])?;
+    Ok(decode_string(&rsp))
 }
 
-pub fn command_read_version(
+pub fn command_read_feature_flags(
     port: &mut Box<dyn SerialPort>,
-    command_type: u8,
-) -> Result<String, Box<dyn Error>> {
-    let msg = [0x00, 0x03, command_type];
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-    println!("Version read rsp {:x?}", rsp);
-
-    Ok(decode_string(&rsp[3..]))
+) -> Result<FeatureFlag, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::SysReadFeatureFlags, &[])?;
+    Ok(FeatureFlag::from(BigEndian::read_u32(&rsp[3..])))
 }
 
 pub fn command_reset_device(
     port: &mut Box<dyn SerialPort>,
     reset_type: ResetType,
 ) -> Result<(), Box<dyn Error>> {
-    let msg = [0x01, 0x03, 0x00, reset_type as u8];
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-
+    let _ = send_command(port, CommandType::DeviceResetReboot, &[reset_type as u8])?;
     Ok(())
 }
 
@@ -163,9 +179,9 @@ pub fn command_read_storage_block_partial(
 }
 
 // No idea what to send here?
-pub fn command_write_feature_flags (
+pub fn command_write_feature_flags(
     port: &mut Box<dyn SerialPort>,
-    flags: &[u8]
+    flags: &[u8],
 ) -> Result<(), Box<dyn Error>> {
     let msg = [0x43, 0x03, 0x00];
     let mut whole: Vec<u8> = Vec::new();
@@ -185,15 +201,14 @@ pub fn command_write_feature_flags (
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
             "writing feature flag failed",
-        ).into());
+        )
+        .into());
     }
 
     Ok(())
 }
 
-pub fn command_read_unique_id (
-    port: &mut Box<dyn SerialPort>,
-) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn command_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Box<dyn Error>> {
     let msg = [0x43, 0x03, 0x01];
     let frame = encode_frame(&msg);
     port.write_all(&frame)?;
@@ -205,7 +220,7 @@ pub fn command_read_unique_id (
     Ok(rsp[3..].to_vec())
 }
 
-pub fn command_read_feature_flags_enabled (
+pub fn command_read_feature_flags_enabled(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<u32, Box<dyn Error>> {
     let msg = [0x43, 0x03, 0x02];
@@ -219,7 +234,7 @@ pub fn command_read_feature_flags_enabled (
     Ok(LittleEndian::read_u32(&rsp[3..]))
 }
 
-pub fn command_read_feature_flags_available (
+pub fn command_read_feature_flags_available(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<u32, Box<dyn Error>> {
     let msg = [0x43, 0x03, 0x03];

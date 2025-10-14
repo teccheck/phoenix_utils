@@ -188,7 +188,7 @@ impl StorageBlockPermissions {
 }
 
 #[bitmask(u32)]
-enum FeatureFlag {
+pub enum FeatureFlag {
     Idea = 1,
     MultiChannel = 2,
     RssiFeedback = 8,
