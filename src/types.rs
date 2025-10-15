@@ -1,6 +1,7 @@
-use std::fmt::{Display, Write};
+use std::fmt::Display;
 
 use bitmask_enum::bitmask;
+use clap::{Parser, ValueEnum};
 use strum::FromRepr;
 
 /// This represents a command type (first encoded byte in sci frame)
@@ -44,7 +45,7 @@ pub enum CommandType {
     // Why is there so much overlap???
     //ToolsDigitalMonitorOff = 0x1109,
     //ToolsDigitalMonitorOn = 0x1110,
-    // I'm sure about this one. Why is there ToolsClockX??? 
+    // I'm sure about this one. Why is there ToolsClockX???
     // Ok, it seems like there's overlap, so this seems to be stateful?
     ToolsBeeperNormalMode = 0x1109,
     ToolsBeeperTestMode = 0x1110,
@@ -135,6 +136,17 @@ pub enum CommandType {
     Tools2FlexTestMessage = 0x8180,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Parser)]
+pub enum ResetType {
+    Hardreset = 0,
+    Softreset,
+    BootupToHiddenMenu,
+    BootupToTestMenu,
+    BootupWithoutConfiguration,
+    BootupToGsmTunnel,
+    BootupToBootloader,
+}
+
 #[derive(Debug, FromRepr)]
 #[repr(u8)]
 pub enum SwionResult {
@@ -212,7 +224,10 @@ pub enum FeatureFlag {
 
 impl Display for FeatureFlag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let flags: Vec<&'static str> = FeatureFlag::flags().filter(|(_, f)| self.contains(*f)).map(|(n, _)| *n).collect();
+        let flags: Vec<&'static str> = FeatureFlag::flags()
+            .filter(|(_, f)| self.contains(*f))
+            .map(|(n, _)| *n)
+            .collect();
         write!(f, "{}", flags.join(", "))?;
         Ok(())
     }

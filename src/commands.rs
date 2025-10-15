@@ -7,8 +7,8 @@ use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
     types::{
-        CommandType, FeatureFlag, StorageBlockId, StorageBlockLength, StorageBlockOffset,
-        StorageBlockPermissions, StorageBlockVersion, SwionResult,
+        CommandType, FeatureFlag, ResetType, StorageBlockId, StorageBlockLength,
+        StorageBlockOffset, StorageBlockPermissions, StorageBlockVersion, SwionResult,
     },
 };
 
@@ -39,16 +39,6 @@ fn send_command_raw(
     let rsp = decode_frame(&read_buf[..size])?;
 
     Ok(rsp)
-}
-
-pub enum ResetType {
-    Hardreset = 0,
-    Softreset,
-    BootupToHiddenMenu,
-    BootupToTestMenu,
-    BootupWithoutConfiguration,
-    BootupToGsmTunnel,
-    BootupToBootloader,
 }
 
 pub fn command_read_firmware_version(

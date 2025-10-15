@@ -6,22 +6,33 @@ mod types;
 
 use std::time::Duration;
 
-use clap::{Error, Parser};
+use clap::{Error, Parser, Subcommand};
 use serialport::SerialPort;
 
-use crate::{commands::StorageBlockInfo, tasks::task_print_device_info};
+use crate::{commands::{command_reset_device, StorageBlockInfo}, tasks::task_print_device_info, types::ResetType};
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct CmdArgs {
-    #[arg(short, long, default_value_t = ("/dev/ttyUSB0".to_string()), help = "Serial port to use")]
+    #[arg(short, long, default_value = "/dev/ttyUSB0", help = "Serial port to use")]
     port: String,
 
     #[arg(short, long, default_value_t = 57600, help = "Baud rate")]
     baud_rate: u32,
 
     #[arg(short, long, default_value_t = true, help = "Show device info")]
-    info: bool
+    info: bool,
+
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Reboot {
+        #[arg(short, long, value_enum, default_value_t = ResetType::Softreset)]
+        reboot_type: ResetType,
+    },
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
@@ -76,4 +87,14 @@ fn main() {
     if args.info {
         task_print_device_info(&mut port);
     }
+
+    if let Some(command) = args.command {
+        match command {
+            Commands::Reboot { reboot_type } => {
+                let _ = command_reset_device(&mut port, reboot_type);
+            },
+        }
+    };
+
+    return;
 }
