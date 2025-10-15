@@ -9,12 +9,23 @@ use std::time::Duration;
 use clap::{Error, Parser, Subcommand};
 use serialport::SerialPort;
 
-use crate::{commands::{command_reset_device, StorageBlockInfo}, tasks::task_print_device_info, types::ResetType};
+use crate::{
+    commands::{
+        StorageBlockInfo, command_bootup_device, command_reset_device, command_shutdown_device,
+    },
+    tasks::task_print_device_info,
+    types::ResetType,
+};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct CmdArgs {
-    #[arg(short, long, default_value = "/dev/ttyUSB0", help = "Serial port to use")]
+    #[arg(
+        short,
+        long,
+        default_value = "/dev/ttyUSB0",
+        help = "Serial port to use"
+    )]
     port: String,
 
     #[arg(short, long, default_value_t = 57600, help = "Baud rate")]
@@ -33,6 +44,8 @@ enum Commands {
         #[arg(short, long, value_enum, default_value_t = ResetType::Softreset)]
         reboot_type: ResetType,
     },
+    Bootup,
+    Shutdown,
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
@@ -70,7 +83,10 @@ fn main() {
     let args = CmdArgs::parse();
 
     println!("Welcome to DE10A Utils");
-    println!("Trying port {} with baud rate {}", args.port, args.baud_rate);
+    println!(
+        "Trying port {} with baud rate {}",
+        args.port, args.baud_rate
+    );
 
     let mut port = serialport::new(args.port, args.baud_rate)
         .data_bits(serialport::DataBits::Eight)
@@ -79,7 +95,7 @@ fn main() {
         .timeout(Duration::from_millis(1000))
         .open()
         .expect("Failed to open port");
-    
+
     let _ = handshake(&mut port);
 
     println!("");
@@ -92,7 +108,13 @@ fn main() {
         match command {
             Commands::Reboot { reboot_type } => {
                 let _ = command_reset_device(&mut port, reboot_type);
-            },
+            }
+            Commands::Shutdown => {
+                let _ = command_shutdown_device(&mut port);
+            }
+            Commands::Bootup => {
+                let _ = command_bootup_device(&mut port);
+            }
         }
     };
 

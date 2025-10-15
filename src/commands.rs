@@ -70,6 +70,16 @@ pub fn command_reset_device(
     Ok(())
 }
 
+pub fn command_shutdown_device(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let _ = send_command(port, CommandType::DeviceResetShutdown, &[])?;
+    Ok(())
+}
+
+pub fn command_bootup_device(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let _ = send_command(port, CommandType::DeviceResetStartup, &[])?;
+    Ok(())
+}
+
 #[derive(Debug)]
 pub struct StorageBlockInfo {
     pub id: StorageBlockId,
