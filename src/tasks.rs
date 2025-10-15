@@ -11,6 +11,27 @@ use crate::{
     types::DeviceInfo,
 };
 
+pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) {
+    println!("Reading Storage directory. This might take a few seconds...");
+
+    match task_read_storage_directory(port) {
+        Ok(dir) => {
+            println!("| ID   | Version | Size   | Flags |");
+
+            for block in dir {
+                println!(
+                    "| {:>4x} | {:>7} | {:>6} | {:>5} |",
+                    block.id,
+                    block.version,
+                    block.length,
+                    block.permissions.flag_string()
+                );
+            }
+        }
+        Err(e) => println!("Error reading device info: {}", e),
+    }
+}
+
 pub fn task_read_storage_directory(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {

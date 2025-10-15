@@ -11,9 +11,9 @@ use serialport::SerialPort;
 
 use crate::{
     commands::{
-        StorageBlockInfo, command_bootup_device, command_reset_device, command_shutdown_device,
+        command_bootup_device, command_reset_device, command_shutdown_device, StorageBlockInfo
     },
-    tasks::task_print_device_info,
+    tasks::{task_print_device_info, task_print_storage_directory},
     types::ResetType,
 };
 
@@ -46,6 +46,7 @@ enum Commands {
     },
     Bootup,
     Shutdown,
+    PrintStorageDir,
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
@@ -62,20 +63,6 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
             println!("Handshake sucessful");
             return Ok(());
         }
-    }
-}
-
-fn print_storage_dir(dir: Vec<StorageBlockInfo>) {
-    println!("| ID   | Version | Size   | Flags |");
-
-    for block in dir {
-        println!(
-            "| {:>4x} | {:>7} | {:>6} | {:>5} |",
-            block.id,
-            block.version,
-            block.length,
-            block.permissions.flag_string()
-        );
     }
 }
 
@@ -114,6 +101,9 @@ fn main() {
             }
             Commands::Bootup => {
                 let _ = command_bootup_device(&mut port);
+            }
+            Commands::PrintStorageDir => {
+                let _ = task_print_storage_directory(&mut port);
             }
         }
     };
