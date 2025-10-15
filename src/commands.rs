@@ -7,8 +7,8 @@ use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
     types::{
-        CommandType, FeatureFlag, ResetType, StorageBlockId, StorageBlockLength,
-        StorageBlockOffset, StorageBlockPermissions, StorageBlockVersion, SwionResult,
+        CommandType, FeatureFlag, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockLength,
+        StorageBlockOffset, StorageBlockPermissions, SwionResult,
     },
 };
 
@@ -78,14 +78,6 @@ pub fn command_shutdown_device(port: &mut Box<dyn SerialPort>) -> Result<(), Box
 pub fn command_bootup_device(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let _ = send_command(port, CommandType::DeviceResetStartup, &[])?;
     Ok(())
-}
-
-#[derive(Debug)]
-pub struct StorageBlockInfo {
-    pub id: StorageBlockId,
-    pub length: StorageBlockLength,
-    pub version: StorageBlockVersion,
-    pub permissions: StorageBlockPermissions,
 }
 
 pub fn command_delete_storage_block(

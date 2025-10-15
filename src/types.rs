@@ -233,6 +233,14 @@ impl Display for FeatureFlag {
     }
 }
 
+#[derive(Debug)]
+pub struct StorageBlockInfo {
+    pub id: StorageBlockId,
+    pub length: StorageBlockLength,
+    pub version: StorageBlockVersion,
+    pub permissions: StorageBlockPermissions,
+}
+
 pub struct DeviceInfo {
     pub serial_number: String,
     pub firmware_version: String,

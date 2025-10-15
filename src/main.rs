@@ -10,9 +10,7 @@ use clap::{Error, Parser, Subcommand};
 use serialport::SerialPort;
 
 use crate::{
-    commands::{
-        command_bootup_device, command_reset_device, command_shutdown_device, StorageBlockInfo
-    },
+    commands::{command_bootup_device, command_reset_device, command_shutdown_device},
     tasks::{task_print_device_info, task_print_storage_directory},
     types::ResetType,
 };

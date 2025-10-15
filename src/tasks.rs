@@ -4,11 +4,10 @@ use serialport::SerialPort;
 
 use crate::{
     commands::{
-        StorageBlockInfo, command_read_feature_flags, command_read_firmware_version,
-        command_read_serial_number, command_read_storage_block_info,
-        command_storage_directory_size,
+        command_read_feature_flags, command_read_firmware_version, command_read_serial_number,
+        command_read_storage_block_info, command_storage_directory_size,
     },
-    types::DeviceInfo,
+    types::{DeviceInfo, StorageBlockInfo},
 };
 
 pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) {
