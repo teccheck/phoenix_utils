@@ -7,8 +7,7 @@ use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
     types::{
-        CommandType, FeatureFlag, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockLength,
-        StorageBlockOffset, StorageBlockPermissions, SwionResult,
+        CommandType, FeatureFlag, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions, SwionResult
     },
 };
 
@@ -113,15 +112,6 @@ pub fn command_storage_directory_size(
 ) -> Result<u16, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadDirSize, &[])?;
     Ok(BigEndian::read_u16(&rsp[3..5]))
-}
-
-#[derive(Debug)]
-pub struct PartialStorageBlock {
-    pub id: StorageBlockId,
-    pub offset: StorageBlockOffset,
-    pub length: StorageBlockLength,
-    pub result: SwionResult,
-    pub data: Vec<u8>,
 }
 
 pub fn command_read_storage_block_partial(

@@ -241,6 +241,15 @@ pub struct StorageBlockInfo {
     pub permissions: StorageBlockPermissions,
 }
 
+#[derive(Debug)]
+pub struct PartialStorageBlock {
+    pub id: StorageBlockId,
+    pub offset: StorageBlockOffset,
+    pub length: StorageBlockLength,
+    pub result: SwionResult,
+    pub data: Vec<u8>,
+}
+
 pub struct DeviceInfo {
     pub serial_number: String,
     pub firmware_version: String,
