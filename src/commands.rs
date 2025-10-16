@@ -84,15 +84,9 @@ pub fn command_delete_storage_block(
     port: &mut Box<dyn SerialPort>,
     id: StorageBlockId,
 ) -> Result<(), Box<dyn Error>> {
-    let mut msg = [0x14, 0x03, 0x02, 0x00, 0x00];
-    BigEndian::write_u16(&mut msg[3..], id);
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-
+    let mut data = [2, 0 as u8];
+    BigEndian::write_u16(&mut data, id);
+    let rsp = send_command(port, CommandType::StorageDeleteBlock, &data)?;
     println!("rsp: {:x?}", rsp);
 
     Ok(())
@@ -102,14 +96,9 @@ pub fn command_read_storage_block_info(
     port: &mut Box<dyn SerialPort>,
     index: u16,
 ) -> Result<StorageBlockInfo, Box<dyn Error>> {
-    let mut msg = [0x14, 0x03, 0x11, 0x00, 0x00];
-    BigEndian::write_u16(&mut msg[3..], index);
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
+    let mut data = [2, 0 as u8];
+    BigEndian::write_u16(&mut data, index);
+    let rsp = send_command(port, CommandType::StorageReadBlockInfo, &data)?;
 
     Ok(StorageBlockInfo {
         id: BigEndian::read_u16(&rsp[3..5]),
@@ -122,14 +111,7 @@ pub fn command_read_storage_block_info(
 pub fn command_storage_directory_size(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<u16, Box<dyn Error>> {
-    let msg = [0x14, 0x03, 0x10];
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-
+    let rsp = send_command(port, CommandType::StorageReadDirSize, &[])?;
     Ok(BigEndian::read_u16(&rsp[3..5]))
 }
 
@@ -148,16 +130,12 @@ pub fn command_read_storage_block_partial(
     offset: u16,
     length: u16,
 ) -> Result<PartialStorageBlock, Box<dyn Error>> {
-    let mut msg = [0x14, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    BigEndian::write_u16(&mut msg[3..5], id);
-    BigEndian::write_u16(&mut msg[5..7], offset);
-    BigEndian::write_u16(&mut msg[7..9], length);
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
+    let mut data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+    BigEndian::write_u16(&mut data[0..2], id);
+    BigEndian::write_u16(&mut data[2..4], offset);
+    BigEndian::write_u16(&mut data[4..6], length);
 
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
+    let rsp = send_command(port, CommandType::StorageReadBlockPart, &data)?;
 
     let block = PartialStorageBlock {
         id: BigEndian::read_u16(&rsp[3..]),
@@ -201,41 +179,20 @@ pub fn command_write_feature_flags(
 }
 
 pub fn command_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Box<dyn Error>> {
-    let msg = [0x43, 0x03, 0x01];
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-
+    let rsp = send_command(port, CommandType::FeatureFlagsReadUniqueId, &[])?;
     Ok(rsp[3..].to_vec())
 }
 
 pub fn command_read_feature_flags_enabled(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<u32, Box<dyn Error>> {
-    let msg = [0x43, 0x03, 0x02];
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-
+    let rsp = send_command(port, CommandType::FeatureFlagsReadEnabled, &[])?;
     Ok(LittleEndian::read_u32(&rsp[3..]))
 }
 
 pub fn command_read_feature_flags_available(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<u32, Box<dyn Error>> {
-    let msg = [0x43, 0x03, 0x03];
-    let frame = encode_frame(&msg);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
-
+    let rsp = send_command(port, CommandType::FeatureFlagsReadSupported, &[])?;
     Ok(LittleEndian::read_u32(&rsp[3..]))
 }
