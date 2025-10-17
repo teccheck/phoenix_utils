@@ -32,6 +32,12 @@ struct CmdArgs {
     #[arg(short, long, default_value_t = true, help = "Show device info")]
     info: bool,
 
+    #[arg(short, long, help = "Programming password")]
+    auth: Option<String>,
+
+    #[arg(long, help = "SHA1 hased programming password")]
+    auth_hash: Option<String>,
+
     #[command(subcommand)]
     command: Option<Commands>,
 }
