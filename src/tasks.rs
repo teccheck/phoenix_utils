@@ -5,9 +5,10 @@ use serialport::SerialPort;
 use crate::{
     commands::{
         command_read_feature_flags, command_read_firmware_version, command_read_serial_number,
-        command_read_storage_block_info, command_storage_directory_size,
+        command_read_storage_block_info, command_read_storage_block_partial,
+        command_storage_directory_size,
     },
-    types::{DeviceInfo, StorageBlockInfo},
+    types::{DeviceInfo, StorageBlockId, StorageBlockInfo, StorageBlockLength, StorageBlockOffset},
 };
 
 pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) {
@@ -43,6 +44,51 @@ pub fn task_read_storage_directory(
     }
 
     Ok(blocks)
+}
+
+pub fn task_print_storage_block(
+    port: &mut Box<dyn SerialPort>,
+    id: StorageBlockId,
+    offset: StorageBlockOffset,
+    length: StorageBlockLength,
+) -> Result<(), Box<dyn Error>> {
+    let data = task_read_storage_block(port, id, offset, length)?;
+    println!("Storage Block ({:X}): {:X?}", id, data);
+    Ok(())
+}
+
+pub fn task_read_storage_block(
+    port: &mut Box<dyn SerialPort>,
+    id: StorageBlockId,
+    offset: StorageBlockOffset,
+    length: StorageBlockLength,
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let part_size = 16;
+    let mut index = 0;
+    let mut data = Vec::new();
+
+    loop {
+        let offset = offset + index * part_size;
+        if offset >= length {
+            break;
+        }
+
+        let len = if length - offset < part_size {
+            length - offset
+        } else {
+            part_size
+        };
+
+        if len == 0 {
+            break;
+        }
+
+        let block = command_read_storage_block_partial(port, id, offset, len)?;
+        data.extend_from_slice(&block.data);
+        index += 1;
+    }
+
+    Ok(data)
 }
 
 pub fn task_print_device_info(port: &mut Box<dyn SerialPort>) {

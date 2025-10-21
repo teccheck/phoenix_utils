@@ -7,12 +7,13 @@ mod types;
 use std::time::Duration;
 
 use clap::{Error, Parser, Subcommand};
+use clap_num::maybe_hex;
 use serialport::SerialPort;
 
 use crate::{
     commands::{command_bootup_device, command_reset_device, command_shutdown_device},
-    tasks::{task_print_device_info, task_print_storage_directory},
-    types::ResetType,
+    tasks::{task_print_device_info, task_print_storage_block, task_print_storage_directory},
+    types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
 
 #[derive(Parser)]
@@ -51,6 +52,14 @@ enum Commands {
     Bootup,
     Shutdown,
     PrintStorageDir,
+    ReadStorageBlock {
+        #[arg(short, long, value_parser=maybe_hex::<StorageBlockId>)]
+        id: StorageBlockId,
+        #[arg(short, long, value_parser=maybe_hex::<StorageBlockOffset>, default_value_t=0)]
+        offset: StorageBlockOffset,
+        #[arg(short, long, value_parser=maybe_hex::<StorageBlockLength>)]
+        length: StorageBlockLength,
+    },
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
@@ -108,6 +117,9 @@ fn main() {
             }
             Commands::PrintStorageDir => {
                 let _ = task_print_storage_directory(&mut port);
+            }
+            Commands::ReadStorageBlock { id, offset, length } => {
+                let _ = task_print_storage_block(&mut port, id, offset, length);
             }
         }
     };
