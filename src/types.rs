@@ -13,6 +13,8 @@ use strum::FromRepr;
 pub enum CommandType {
     SysReadFirmwareVersion = 0x0001,
     SysReadSerialNumber = 0x0002,
+    // Used without any arguments. No clue how to continue after this
+    SysStartFirmwareUpdate = 0x0004,
     SysReadFeatureFlags = 0x0006,
     SysReadFirmwareBuildId = 0x0008,
     SysReadProductStringApplication = 0x0009,

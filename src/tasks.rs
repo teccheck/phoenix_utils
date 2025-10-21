@@ -185,5 +185,7 @@ pub fn task_auth_password(
     let mut hasher = Sha1::new();
     hasher.update(password);
     let hash = hasher.finalize();
+    println!("Password Hash: {:X}", hash);
+
     command_lock_key_auth(port, &hash)
 }
