@@ -29,15 +29,17 @@ pub enum SwionResult {
     None,
 }
 
-pub fn parse_result_default(result: u8) -> SwionResult {
-    SwionResult::from_repr(result).unwrap_or(SwionResult::None)
-}
+impl SwionResult {
+    pub fn parse_default(result: u8) -> SwionResult {
+        SwionResult::from_repr(result).unwrap_or(SwionResult::None)
+    }
 
-pub fn parse_result_var1(result: u8) -> SwionResult {
-    match result {
-        1 => SwionResult::Success,
-        2 | 4 | 5 => SwionResult::AuthentificationError,
-        3 => SwionResult::Locked,
-        _ => SwionResult::Error,
+    pub fn parse_var1(result: u8) -> SwionResult {
+        match result {
+            1 => SwionResult::Success,
+            2 | 4 | 5 => SwionResult::AuthentificationError,
+            3 => SwionResult::Locked,
+            _ => SwionResult::Error,
+        }
     }
 }

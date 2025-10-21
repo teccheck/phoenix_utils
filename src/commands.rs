@@ -6,10 +6,10 @@ use serialport::SerialPort;
 use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
-    swion_result::{SwionResult, parse_result_var1},
+    swion_result::SwionResult,
     types::{
         CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock,
-        ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions, SwionResultOld,
+        ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions,
     },
 };
 
@@ -133,7 +133,7 @@ pub fn command_read_storage_block_partial(
         id: BigEndian::read_u16(&rsp[3..]),
         offset: BigEndian::read_u16(&rsp[5..]),
         length: BigEndian::read_u16(&rsp[7..]),
-        result: SwionResultOld::from_repr(rsp[9]).unwrap_or(SwionResultOld::Error),
+        result: SwionResult::parse_default(rsp[9]),
         data: Vec::from(&rsp[10..]),
     };
 
@@ -193,7 +193,7 @@ pub fn command_cra_cap_read(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<CRACapabilities, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
-    let res = SwionResultOld::from_repr(rsp[3]).unwrap_or(SwionResultOld::Error);
+    let res = SwionResult::parse_default(rsp[3]);
 
     Ok(CRACapabilities {
         flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[4..])),
@@ -207,5 +207,5 @@ pub fn command_lock_key_auth(
     key: &[u8],
 ) -> Result<SwionResult, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
-    Ok(parse_result_var1(rsp[3]))
+    Ok(SwionResult::parse_var1(rsp[3]))
 }
