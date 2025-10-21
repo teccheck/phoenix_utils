@@ -12,7 +12,7 @@ use serialport::SerialPort;
 
 use crate::{
     commands::{command_bootup_device, command_reset_device, command_shutdown_device},
-    tasks::{task_print_device_info, task_print_storage_block, task_print_storage_directory},
+    tasks::{task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory},
     types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
 
@@ -60,6 +60,7 @@ enum Commands {
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockLength>)]
         length: StorageBlockLength,
     },
+    CRAReadCapabilities,
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
@@ -120,6 +121,9 @@ fn main() {
             }
             Commands::ReadStorageBlock { id, offset, length } => {
                 let _ = task_print_storage_block(&mut port, id, offset, length);
+            }
+            Commands::CRAReadCapabilities => {
+                let _ = task_print_cra_capabilities(&mut port);
             }
         }
     };

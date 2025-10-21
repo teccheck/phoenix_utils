@@ -7,7 +7,7 @@ use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
     types::{
-        CommandType, FeatureFlag, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions, SwionResult
+        CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions, SwionResult
     },
 };
 
@@ -185,4 +185,15 @@ pub fn command_read_feature_flags_available(
 ) -> Result<u32, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadSupported, &[])?;
     Ok(LittleEndian::read_u32(&rsp[3..]))
+}
+
+pub fn command_cra_cap_read(port: &mut Box<dyn SerialPort>) -> Result<CRACapabilities, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
+    let res = SwionResult::from_repr(rsp[3]).unwrap_or(SwionResult::Error);
+
+    Ok(CRACapabilities {
+        flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[4..])),
+        payloadRequest: BigEndian::read_u16(&rsp[6..]),
+        payloadResponse: BigEndian::read_u16(&rsp[8..]),
+    })
 }

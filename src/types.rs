@@ -233,6 +233,50 @@ impl Display for FeatureFlag {
     }
 }
 
+#[bitmask(u16)]
+#[bitmask_config(vec_debug, flags_iter)]
+pub enum CRACapabilityFlags {
+    MMICommands = 1,
+    TTSCommands = 2,
+    ExtendedNVMCommands = 4,
+    SW09Commands = 8,
+    PayloadCommands = 16,
+    FeatureFlagCommands = 32,
+    ADPCMAudioCommands = 64,
+    LockKeyCommands = 128,
+    LockKeyCRACommands = 256,
+    ExtendedLogCommands = 512,
+    TransactionCommands = 1024,
+}
+
+impl Display for CRACapabilityFlags {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let flags: Vec<&'static str> = CRACapabilityFlags::flags()
+            .filter(|(_, f)| self.contains(*f))
+            .map(|(n, _)| *n)
+            .collect();
+        write!(f, "{}", flags.join(", "))?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct CRACapabilities {
+    pub flags: CRACapabilityFlags,
+    pub payloadRequest: u16,
+    pub payloadResponse: u16,
+}
+
+impl Display for CRACapabilities {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Flags: {}", self.flags)?;
+        writeln!(f, "Payload Request: {}", self.payloadRequest)?;
+        writeln!(f, "Payload Response: {}", self.payloadResponse)?;
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub struct StorageBlockInfo {
     pub id: StorageBlockId,

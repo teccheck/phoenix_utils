@@ -4,9 +4,7 @@ use serialport::SerialPort;
 
 use crate::{
     commands::{
-        command_read_feature_flags, command_read_firmware_version, command_read_serial_number,
-        command_read_storage_block_info, command_read_storage_block_partial,
-        command_storage_directory_size,
+        command_cra_cap_read, command_read_feature_flags, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size
     },
     types::{DeviceInfo, StorageBlockId, StorageBlockInfo, StorageBlockLength, StorageBlockOffset},
 };
@@ -108,4 +106,10 @@ pub fn task_read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInf
         firmware_version,
         feature_flags,
     })
+}
+
+pub fn task_print_cra_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let capabilities = command_cra_cap_read(port)?;
+    println!("Capabilities:\n{}", capabilities);
+    Ok(())
 }
