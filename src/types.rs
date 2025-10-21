@@ -149,7 +149,7 @@ pub enum ResetType {
 
 #[derive(Debug, FromRepr)]
 #[repr(u8)]
-pub enum SwionResult {
+pub enum SwionResultOld {
     Success = 0,
     Error = 1,
     DataNotFound = 2,
@@ -290,7 +290,7 @@ pub struct PartialStorageBlock {
     pub id: StorageBlockId,
     pub offset: StorageBlockOffset,
     pub length: StorageBlockLength,
-    pub result: SwionResult,
+    pub result: SwionResultOld,
     pub data: Vec<u8>,
 }
 

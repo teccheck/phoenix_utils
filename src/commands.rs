@@ -6,8 +6,10 @@ use serialport::SerialPort;
 use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
+    swion_result::{SwionResult, parse_result_var1},
     types::{
-        CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions, SwionResult
+        CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock,
+        ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions, SwionResultOld,
     },
 };
 
@@ -131,7 +133,7 @@ pub fn command_read_storage_block_partial(
         id: BigEndian::read_u16(&rsp[3..]),
         offset: BigEndian::read_u16(&rsp[5..]),
         length: BigEndian::read_u16(&rsp[7..]),
-        result: SwionResult::from_repr(rsp[9]).unwrap_or(SwionResult::Error),
+        result: SwionResultOld::from_repr(rsp[9]).unwrap_or(SwionResultOld::Error),
         data: Vec::from(&rsp[10..]),
     };
 
@@ -187,13 +189,23 @@ pub fn command_read_feature_flags_available(
     Ok(LittleEndian::read_u32(&rsp[3..]))
 }
 
-pub fn command_cra_cap_read(port: &mut Box<dyn SerialPort>) -> Result<CRACapabilities, Box<dyn Error>> {
+pub fn command_cra_cap_read(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<CRACapabilities, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
-    let res = SwionResult::from_repr(rsp[3]).unwrap_or(SwionResult::Error);
+    let res = SwionResultOld::from_repr(rsp[3]).unwrap_or(SwionResultOld::Error);
 
     Ok(CRACapabilities {
         flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[4..])),
         payloadRequest: BigEndian::read_u16(&rsp[6..]),
         payloadResponse: BigEndian::read_u16(&rsp[8..]),
     })
+}
+
+pub fn command_lock_key_auth(
+    port: &mut Box<dyn SerialPort>,
+    key: &[u8],
+) -> Result<SwionResult, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
+    Ok(parse_result_var1(rsp[3]))
 }

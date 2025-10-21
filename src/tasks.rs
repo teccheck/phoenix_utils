@@ -1,12 +1,19 @@
-use std::error::Error;
+use std::{error::Error, num::ParseIntError};
 
 use serialport::SerialPort;
+use sha1::{Digest, Sha1};
 
 use crate::{
     commands::{
-        command_cra_cap_read, command_read_feature_flags, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size
+        command_cra_cap_read, command_lock_key_auth, command_read_feature_flags,
+        command_read_firmware_version, command_read_serial_number, command_read_storage_block_info,
+        command_read_storage_block_partial, command_storage_directory_size,
     },
-    types::{DeviceInfo, StorageBlockId, StorageBlockInfo, StorageBlockLength, StorageBlockOffset},
+    swion_result::SwionResult,
+    types::{
+        CRACapabilityFlags, DeviceInfo, StorageBlockId, StorageBlockInfo, StorageBlockLength,
+        StorageBlockOffset,
+    },
 };
 
 pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) {
@@ -112,4 +119,71 @@ pub fn task_print_cra_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(),
     let capabilities = command_cra_cap_read(port)?;
     println!("Capabilities:\n{}", capabilities);
     Ok(())
+}
+
+pub fn task_try_authenticate(
+    port: &mut Box<dyn SerialPort>,
+    password: Option<String>,
+    hash_string: Option<String>,
+) -> bool {
+    let needs_auth = if let Ok(cap) = command_cra_cap_read(port) {
+        cap.flags.contains(CRACapabilityFlags::LockKeyCommands)
+            || cap.flags.contains(CRACapabilityFlags::LockKeyCRACommands)
+    } else {
+        false
+    };
+
+    let auth_result = if needs_auth {
+        println!("Trying to authenticate...");
+        if let Some(hash) = hash_string {
+            task_auth_hash_string(port, &hash)
+        } else if let Some(password) = password {
+            task_auth_password(port, password)
+        } else {
+            task_auth_password(port, "".to_string())
+        }
+    } else {
+        println!("Authentication not needed");
+        return true;
+    };
+
+    if let Ok(result) = auth_result {
+        match result {
+            SwionResult::Success => {
+                println!("Authentication successful");
+                true
+            }
+            r => {
+                println!("Authentication failed: {}", r);
+                false
+            }
+        }
+    } else {
+        false
+    }
+}
+
+fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+        .collect()
+}
+
+pub fn task_auth_hash_string(
+    port: &mut Box<dyn SerialPort>,
+    hash_string: &str,
+) -> Result<SwionResult, Box<dyn Error>> {
+    let hash = decode_hex(hash_string)?;
+    command_lock_key_auth(port, &hash)
+}
+
+pub fn task_auth_password(
+    port: &mut Box<dyn SerialPort>,
+    password: String,
+) -> Result<SwionResult, Box<dyn Error>> {
+    let mut hasher = Sha1::new();
+    hasher.update(password);
+    let hash = hasher.finalize();
+    command_lock_key_auth(port, &hash)
 }

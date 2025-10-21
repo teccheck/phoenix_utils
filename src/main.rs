@@ -1,6 +1,7 @@
 mod commands;
 mod phoenix_encoding;
 mod sci_frame_protocol;
+mod swion_result;
 mod tasks;
 mod types;
 
@@ -12,7 +13,10 @@ use serialport::SerialPort;
 
 use crate::{
     commands::{command_bootup_device, command_reset_device, command_shutdown_device},
-    tasks::{task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory},
+    tasks::{
+        task_print_cra_capabilities, task_print_device_info, task_print_storage_block,
+        task_print_storage_directory, task_try_authenticate,
+    },
     types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
 
@@ -103,6 +107,10 @@ fn main() {
 
     if args.info {
         task_print_device_info(&mut port);
+    }
+
+    if !task_try_authenticate(&mut port, args.auth, args.auth_hash) {
+        return;
     }
 
     if let Some(command) = args.command {
