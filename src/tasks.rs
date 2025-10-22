@@ -16,25 +16,22 @@ use crate::{
     },
 };
 
-pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) {
+pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     println!("Reading Storage directory. This might take a few seconds...");
-
-    match task_read_storage_directory(port) {
-        Ok(dir) => {
-            println!("| ID   | Version | Size   | Flags |");
-
-            for block in dir {
-                println!(
-                    "| {:>4x} | {:>7} | {:>6} | {:>5} |",
-                    block.id,
-                    block.version,
-                    block.length,
-                    block.permissions.flag_string()
-                );
-            }
-        }
-        Err(e) => println!("Error reading device info: {}", e),
+    let dir = task_read_storage_directory(port)?;
+    
+    println!("| ID   | Version | Size   | Flags |");
+    for block in dir {
+        println!(
+            "| {:>4x} | {:>7} | {:>6} | {:>5} |",
+            block.id,
+            block.version,
+            block.length,
+            block.permissions.flag_string()
+        );
     }
+
+    Ok(())
 }
 
 pub fn task_read_storage_directory(
@@ -140,7 +137,7 @@ pub fn task_try_authenticate(
         } else if let Some(password) = password {
             task_auth_password(port, password)
         } else {
-            task_auth_password(port, "".to_string())
+            task_auth_hash_string(port, "0000000000000000000000000000000000000000")
         }
     } else {
         println!("Authentication not needed");

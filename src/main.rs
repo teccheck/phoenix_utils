@@ -114,27 +114,29 @@ fn main() {
     }
 
     if let Some(command) = args.command {
-        match command {
+        let result = match command {
             Commands::Reboot { reboot_type } => {
-                let _ = command_reset_device(&mut port, reboot_type);
+                command_reset_device(&mut port, reboot_type)
             }
             Commands::Shutdown => {
-                let _ = command_shutdown_device(&mut port);
+                command_shutdown_device(&mut port)
             }
             Commands::Bootup => {
-                let _ = command_bootup_device(&mut port);
+                command_bootup_device(&mut port)
             }
             Commands::PrintStorageDir => {
-                let _ = task_print_storage_directory(&mut port);
+                task_print_storage_directory(&mut port)
             }
             Commands::ReadStorageBlock { id, offset, length } => {
-                let _ = task_print_storage_block(&mut port, id, offset, length);
+                task_print_storage_block(&mut port, id, offset, length)
             }
             Commands::CRAReadCapabilities => {
-                let _ = task_print_cra_capabilities(&mut port);
+                task_print_cra_capabilities(&mut port)
             }
-        }
-    };
+        };
+
+        println!("Command result: {:?}", result);
+    }
 
     return;
 }

@@ -6,7 +6,7 @@ use serialport::SerialPort;
 use crate::{
     phoenix_encoding::decode_string,
     sci_frame_protocol::{decode_frame, encode_frame},
-    swion_result::SwionResult,
+    swion_result::{SwionError, SwionResult},
     types::{
         CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock,
         ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions,
@@ -129,11 +129,15 @@ pub fn command_read_storage_block_partial(
 
     let rsp = send_command(port, CommandType::StorageReadBlockPart, &data)?;
 
+    let swion_result = SwionResult::parse_default(rsp[9]);
+    if swion_result.is_error() {
+        return Err(SwionError::new("command_read_storage_block_partial".to_string(), swion_result).into());
+    }
+
     let block = PartialStorageBlock {
         id: BigEndian::read_u16(&rsp[3..]),
         offset: BigEndian::read_u16(&rsp[5..]),
         length: BigEndian::read_u16(&rsp[7..]),
-        result: SwionResult::parse_default(rsp[9]),
         data: Vec::from(&rsp[10..]),
     };
 
@@ -193,7 +197,11 @@ pub fn command_cra_cap_read(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<CRACapabilities, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
-    let res = SwionResult::parse_default(rsp[3]);
+
+    let swion_result = SwionResult::parse_default(rsp[3]);
+    if swion_result.is_error() {
+        return Err(SwionError::new("command_cra_cap_read".to_string(), swion_result).into());
+    }
 
     Ok(CRACapabilities {
         flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[4..])),

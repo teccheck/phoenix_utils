@@ -4,8 +4,6 @@ use bitmask_enum::bitmask;
 use clap::{Parser, ValueEnum};
 use strum::FromRepr;
 
-use crate::swion_result::SwionResult;
-
 /// This represents a command type (first encoded byte in sci frame)
 /// plus its command variant (third encoded byte in sci frame)
 /// packed into a u16 with the high byte being the command type
@@ -279,7 +277,6 @@ pub struct PartialStorageBlock {
     pub id: StorageBlockId,
     pub offset: StorageBlockOffset,
     pub length: StorageBlockLength,
-    pub result: SwionResult,
     pub data: Vec<u8>,
 }
 

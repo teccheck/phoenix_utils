@@ -1,9 +1,11 @@
 // I hate this!
 // Why are there so many different ways to encode this???
 
+use std::{error::Error, fmt};
+
 use strum::{Display, FromRepr};
 
-#[derive(Debug, FromRepr, Display)]
+#[derive(Debug, FromRepr, Display, Clone)]
 #[repr(u8)]
 pub enum SwionResult {
     Success,
@@ -40,6 +42,36 @@ impl SwionResult {
             2 | 4 | 5 => SwionResult::AuthentificationError,
             3 => SwionResult::Locked,
             _ => SwionResult::Error,
+        }
+    }
+
+    pub fn is_error(&self) -> bool {
+        match self {
+            Self::Success => false,
+            _ => true,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SwionError {
+    operation: String,
+    reason: SwionResult,
+}
+
+impl fmt::Display for SwionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} unsuccessful: {}", self.operation, self.reason)
+    }
+}
+
+impl Error for SwionError {}
+
+impl SwionError {
+    pub fn new(operation: String, reason: SwionResult) -> SwionError {
+        SwionError {
+            operation: operation,
+            reason: reason,
         }
     }
 }
