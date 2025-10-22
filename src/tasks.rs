@@ -19,7 +19,7 @@ use crate::{
 pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     println!("Reading Storage directory. This might take a few seconds...");
     let dir = task_read_storage_directory(port)?;
-    
+
     println!("| ID   | Version | Size   | Flags |");
     for block in dir {
         println!(
@@ -122,41 +122,24 @@ pub fn task_try_authenticate(
     port: &mut Box<dyn SerialPort>,
     password: Option<String>,
     hash_string: Option<String>,
-) -> bool {
-    let needs_auth = if let Ok(cap) = command_cra_cap_read(port) {
-        cap.flags.contains(CRACapabilityFlags::LockKeyCommands)
-            || cap.flags.contains(CRACapabilityFlags::LockKeyCRACommands)
-    } else {
-        false
-    };
+) -> Result<(), Box<dyn Error>> {
+    let caps = command_cra_cap_read(port)?;
 
-    let auth_result = if needs_auth {
-        println!("Trying to authenticate...");
-        if let Some(hash) = hash_string {
-            task_auth_hash_string(port, &hash)
-        } else if let Some(password) = password {
-            task_auth_password(port, password)
-        } else {
-            task_auth_hash_string(port, "0000000000000000000000000000000000000000")
-        }
-    } else {
+    let needs_auth = caps.flags.contains(CRACapabilityFlags::LockKeyCommands)
+        || caps.flags.contains(CRACapabilityFlags::LockKeyCRACommands);
+
+    if !needs_auth {
         println!("Authentication not needed");
-        return true;
-    };
+        return Ok(());
+    }
 
-    if let Ok(result) = auth_result {
-        match result {
-            SwionResult::Success => {
-                println!("Authentication successful");
-                true
-            }
-            r => {
-                println!("Authentication failed: {}", r);
-                false
-            }
-        }
+    println!("Trying to authenticate...");
+    if let Some(hash) = hash_string {
+        task_auth_hash_string(port, &hash)
+    } else if let Some(password) = password {
+        task_auth_password(port, password)
     } else {
-        false
+        task_auth_hash_string(port, "0000000000000000000000000000000000000000")
     }
 }
 
@@ -170,7 +153,7 @@ fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
 pub fn task_auth_hash_string(
     port: &mut Box<dyn SerialPort>,
     hash_string: &str,
-) -> Result<SwionResult, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     let hash = decode_hex(hash_string)?;
     command_lock_key_auth(port, &hash)
 }
@@ -178,7 +161,7 @@ pub fn task_auth_hash_string(
 pub fn task_auth_password(
     port: &mut Box<dyn SerialPort>,
     password: String,
-) -> Result<SwionResult, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     let mut hasher = Sha1::new();
     hasher.update(password);
     let hash = hasher.finalize();

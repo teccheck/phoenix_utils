@@ -109,8 +109,14 @@ fn main() {
         task_print_device_info(&mut port);
     }
 
-    if !task_try_authenticate(&mut port, args.auth, args.auth_hash) {
-        return;
+    match task_try_authenticate(&mut port, args.auth, args.auth_hash) {
+        Ok(_) => {
+            println!("Auth successful");
+        },
+        Err(e) => {
+            println!("Auth error: {}", e);
+            return;
+        },
     }
 
     if let Some(command) = args.command {
@@ -135,7 +141,10 @@ fn main() {
             }
         };
 
-        println!("Command result: {:?}", result);
+        match result {
+            Ok(_) => println!("Successful"),
+            Err(e) => println!("Error: {}", e),
+        }
     }
 
     return;

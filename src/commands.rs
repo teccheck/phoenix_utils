@@ -8,8 +8,7 @@ use crate::{
     sci_frame_protocol::{decode_frame, encode_frame},
     swion_result::{SwionError, SwionResult},
     types::{
-        CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock,
-        ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions,
+        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions
     },
 };
 
@@ -213,7 +212,20 @@ pub fn command_cra_cap_read(
 pub fn command_lock_key_auth(
     port: &mut Box<dyn SerialPort>,
     key: &[u8],
-) -> Result<SwionResult, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
-    Ok(SwionResult::parse_var1(rsp[3]))
+
+    let swion_result = SwionResult::parse_var1(rsp[3]);
+    if swion_result.is_error() {
+        return Err(AuthError {
+            result: swion_result,
+            remaining_attempts: rsp[4],
+            locked_until_day: rsp[5],
+            locked_until_month: rsp[6],
+            locked_until_year: BigEndian::read_u16(&rsp[7..]),
+            enhanced_protection: rsp[9],
+        }.into());
+    }
+
+    Ok(())
 }

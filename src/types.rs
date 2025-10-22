@@ -1,8 +1,10 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::{self, Display}};
 
 use bitmask_enum::bitmask;
 use clap::{Parser, ValueEnum};
 use strum::FromRepr;
+
+use crate::swion_result::SwionResult;
 
 /// This represents a command type (first encoded byte in sci frame)
 /// plus its command variant (third encoded byte in sci frame)
@@ -295,3 +297,27 @@ impl Display for DeviceInfo {
         Ok(())
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct AuthError {
+    pub result: SwionResult,
+    pub remaining_attempts: u8,
+    pub locked_until_day: u8,
+    pub locked_until_month: u8,
+    pub locked_until_year: u16,
+    pub enhanced_protection: u8,
+}
+
+impl fmt::Display for AuthError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Authentication failed. Attempts remaining: {}, Enhanced Protection: {}", self.remaining_attempts, self.enhanced_protection)?;
+
+        if self.locked_until_day != 0xFF && self.locked_until_month != 0xFF && self.locked_until_year != 0xFFFF {
+            write!(f, "Locked until: {}-{}-{}", self.locked_until_year, self.locked_until_month, self.locked_until_day)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Error for AuthError {}
