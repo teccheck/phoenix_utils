@@ -17,7 +17,7 @@ use crate::{
         task_print_cra_capabilities, task_print_device_info, task_print_storage_block,
         task_print_storage_directory, task_try_authenticate,
     },
-    types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+    types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
 
 #[derive(Parser)]
@@ -67,7 +67,7 @@ enum Commands {
     CRAReadCapabilities,
 }
 
-fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
+fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
     let hello: [u8; 3] = [0x55, 0x7e, 0x55];
     let expected: [u8; 2] = [0x56, 0x56];
 
@@ -79,9 +79,24 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<(), Error> {
 
         if size == 2 && read_buf.starts_with(&expected) {
             println!("Handshake sucessful");
-            return Ok(());
+            break;
         }
     }
+
+    let device_tpye_cmd: [u8; 1] = [0x55];
+    port.write_all(&device_tpye_cmd)?;
+    let size = port.read(&mut read_buf)?;
+
+    let device_type = match read_buf[0] {
+        0x55 => DeviceType::B,
+        0x56 => DeviceType::DE10A,
+        0x57 => DeviceType::D,
+        0x58 => DeviceType::E,
+        0x59 => DeviceType::F,
+        _ => DeviceType::A,
+    };
+
+    return Ok(device_type);
 }
 
 fn main() {
@@ -101,7 +116,8 @@ fn main() {
         .open()
         .expect("Failed to open port");
 
-    let _ = handshake(&mut port);
+    let device_type = handshake(&mut port);
+    println!("Device Type: {:?}", device_type);
 
     println!("");
 

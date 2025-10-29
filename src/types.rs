@@ -1,8 +1,11 @@
-use std::{error::Error, fmt::{self, Display}};
+use std::{
+    error::Error,
+    fmt::{self, Display},
+};
 
 use bitmask_enum::bitmask;
 use clap::{Parser, ValueEnum};
-use strum::FromRepr;
+use strum::{Display, FromRepr};
 
 use crate::swion_result::SwionResult;
 
@@ -310,10 +313,21 @@ pub struct AuthError {
 
 impl fmt::Display for AuthError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Authentication failed. Attempts remaining: {}, Enhanced Protection: {}", self.remaining_attempts, self.enhanced_protection)?;
+        write!(
+            f,
+            "Authentication failed. Attempts remaining: {}, Enhanced Protection: {}",
+            self.remaining_attempts, self.enhanced_protection
+        )?;
 
-        if self.locked_until_day != 0xFF && self.locked_until_month != 0xFF && self.locked_until_year != 0xFFFF {
-            write!(f, "Locked until: {}-{}-{}", self.locked_until_year, self.locked_until_month, self.locked_until_day)?;
+        if self.locked_until_day != 0xFF
+            && self.locked_until_month != 0xFF
+            && self.locked_until_year != 0xFFFF
+        {
+            write!(
+                f,
+                "Locked until: {}-{}-{}",
+                self.locked_until_year, self.locked_until_month, self.locked_until_day
+            )?;
         }
 
         Ok(())
@@ -321,3 +335,26 @@ impl fmt::Display for AuthError {
 }
 
 impl Error for AuthError {}
+
+/// Not sure what they mean
+/// Also known as device generation
+#[derive(Debug, Display)]
+pub enum DeviceType {
+    /// Some kind of default/error value (perhaps unknown)
+    A,
+    /// Unknown
+    B,
+    /// Seems to be the type for all DE10A Hardware from Firmware 3.94 to 4.90
+    /// Uses serial config 2 (57600 Baud, 8 Data bits, 1 Stop bit, Parity 0)
+    DE10A,
+    /// Unknown device type
+    /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
+    /// Supports encrypted dump
+    D,
+    /// Unknown
+    /// Supports encrypted dump
+    E,
+    /// Unknown device type
+    /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
+    F,
+}
