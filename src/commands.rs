@@ -24,10 +24,10 @@ fn send_command(
 fn send_command_raw(
     port: &mut Box<dyn SerialPort>,
     command_type: u8,
-    command_sub_typy: u8,
+    command_sub_type: u8,
     data: &[u8],
 ) -> Result<Vec<u8>, Box<dyn Error>> {
-    let header = [command_type, 0x03, command_sub_typy];
+    let header = [command_type, 0x03, command_sub_type];
     let mut msg = Vec::from(header);
     msg.extend_from_slice(data);
 
@@ -39,6 +39,32 @@ fn send_command_raw(
     let rsp = decode_frame(&read_buf[..size])?;
 
     Ok(rsp)
+}
+
+pub fn debug_command(
+    port: &mut Box<dyn SerialPort>,
+    command_type: u8,
+    command_sub_type: u8,
+    data: &[u8],
+) {
+    println!(
+        "Debug command {:X}{:X} ({}:{}):",
+        command_type, command_sub_type, command_type, command_sub_type
+    );
+
+    println!("Data: {:X?}", data);
+
+    let result = send_command_raw(port, command_type, command_sub_type, data);
+    match result {
+        Ok(data) => {
+            println!("Ok: {:X?}", data);
+        },
+        Err(e) => {
+            println!("Err: {:?}", e);
+        },
+    }
+
+    println!("Done");
 }
 
 pub fn command_read_firmware_version(

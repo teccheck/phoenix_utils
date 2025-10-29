@@ -128,33 +128,23 @@ fn main() {
     match task_try_authenticate(&mut port, args.auth, args.auth_hash) {
         Ok(_) => {
             println!("Auth successful");
-        },
+        }
         Err(e) => {
             println!("Auth error: {}", e);
             return;
-        },
+        }
     }
 
     if let Some(command) = args.command {
         let result = match command {
-            Commands::Reboot { reboot_type } => {
-                command_reset_device(&mut port, reboot_type)
-            }
-            Commands::Shutdown => {
-                command_shutdown_device(&mut port)
-            }
-            Commands::Bootup => {
-                command_bootup_device(&mut port)
-            }
-            Commands::PrintStorageDir => {
-                task_print_storage_directory(&mut port)
-            }
+            Commands::Reboot { reboot_type } => command_reset_device(&mut port, reboot_type),
+            Commands::Shutdown => command_shutdown_device(&mut port),
+            Commands::Bootup => command_bootup_device(&mut port),
+            Commands::PrintStorageDir => task_print_storage_directory(&mut port),
             Commands::ReadStorageBlock { id, offset, length } => {
                 task_print_storage_block(&mut port, id, offset, length)
             }
-            Commands::CRAReadCapabilities => {
-                task_print_cra_capabilities(&mut port)
-            }
+            Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
         };
 
         match result {
