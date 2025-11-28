@@ -172,3 +172,10 @@ pub fn task_reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn
     let hash: [u8;20] = [0;20];
     command_lock_key_write(port, &hash, false)
 }
+
+pub fn task_set_password(port: &mut Box<dyn SerialPort>, password: String) -> Result<(), Box<dyn Error>> {
+    let mut hasher = Sha1::new();
+    hasher.update(password);
+    let hash = hasher.finalize();
+    command_lock_key_write(port, &hash, false)
+}
