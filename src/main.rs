@@ -14,7 +14,7 @@ use serialport::SerialPort;
 use crate::{
     commands::{command_bootup_device, command_reset_device, command_shutdown_device},
     tasks::{
-        task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_try_authenticate
+        task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_set_password, task_try_authenticate
     },
     types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
@@ -65,6 +65,9 @@ enum Commands {
     },
     CRAReadCapabilities,
     ResetPassword,
+    SetPassword {
+        password: String,
+    },
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
@@ -168,6 +171,7 @@ fn main() {
             }
             Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
             Commands::ResetPassword => task_reset_password(&mut port),
+            Commands::SetPassword { password } => task_set_password(&mut port, password),
         };
 
         match result {
