@@ -5,9 +5,7 @@ use sha1::{Digest, Sha1};
 
 use crate::{
     commands::{
-        command_cra_cap_read, command_lock_key_auth, command_read_feature_flags,
-        command_read_firmware_version, command_read_serial_number, command_read_storage_block_info,
-        command_read_storage_block_partial, command_storage_directory_size,
+        command_cra_cap_read, command_lock_key_auth, command_lock_key_write, command_read_feature_flags, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size
     },
     swion_result::SwionResult,
     types::{
@@ -168,4 +166,9 @@ pub fn task_auth_password(
     println!("Password Hash: {:X}", hash);
 
     command_lock_key_auth(port, &hash)
+}
+
+pub fn task_reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let hash: [u8;20] = [0;20];
+    command_lock_key_write(port, &hash, false)
 }
