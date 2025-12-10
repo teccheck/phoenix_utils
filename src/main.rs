@@ -5,7 +5,7 @@ mod swion_result;
 mod tasks;
 mod types;
 
-use std::time::Duration;
+use std::{time::Duration};
 
 use clap::{Error, Parser, Subcommand};
 use clap_num::maybe_hex;
@@ -104,7 +104,7 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
     return Ok(device_type);
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>>{
     let args = CmdArgs::parse();
 
     let welcome = "#######################################################################
@@ -140,13 +140,10 @@ fn main() {
         .parity(serialport::Parity::None)
         .stop_bits(serialport::StopBits::One)
         .timeout(Duration::from_millis(1000))
-        .open()
-        .expect("Failed to open port");
+        .open()?;
 
-    let device_type = handshake(&mut port);
+    let device_type = handshake(&mut port)?;
     println!("Device Type: {:?}", device_type);
-
-    println!("");
 
     if args.info {
         task_print_device_info(&mut port);
@@ -158,7 +155,7 @@ fn main() {
         }
         Err(e) => {
             println!("Auth error: {}", e);
-            return;
+            return Err(e);
         }
     }
 
@@ -182,5 +179,5 @@ fn main() {
         }
     }
 
-    return;
+    Ok(())
 }
