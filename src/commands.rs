@@ -71,14 +71,14 @@ pub fn command_read_firmware_version(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFirmwareVersion, &[])?;
-    Ok(decode_string(&rsp))
+    Ok(decode_string(&rsp[3..]))
 }
 
 pub fn command_read_serial_number(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadSerialNumber, &[])?;
-    Ok(decode_string(&rsp))
+    Ok(decode_string(&rsp[3..]))
 }
 
 pub fn command_read_feature_flags(
