@@ -295,7 +295,7 @@ impl Display for DeviceInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Serial Number: {}", self.serial_number)?;
         writeln!(f, "Firmware Version: {}", self.firmware_version)?;
-        writeln!(f, "Feature Flags: {}", self.feature_flags)?;
+        writeln!(f, "Feature Flags: [{}]", self.feature_flags)?;
 
         Ok(())
     }
@@ -342,18 +342,23 @@ impl Error for AuthError {}
 pub enum DeviceType {
     /// Some kind of default/error value (perhaps unknown)
     A,
+    
     /// Unknown
     B,
+
     /// Seems to be the type for all DE10A Hardware from Firmware 3.94 to 4.90
     /// Uses serial config 2 (57600 Baud, 8 Data bits, 1 Stop bit, Parity 0)
     DE10A,
+
     /// Unknown device type
     /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
     /// Supports encrypted dump
     D,
+
     /// Unknown
     /// Supports encrypted dump
     E,
+
     /// Unknown device type
     /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
     F,

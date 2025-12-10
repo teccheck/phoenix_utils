@@ -93,7 +93,7 @@ pub fn task_read_storage_block(
 
 pub fn task_print_device_info(port: &mut Box<dyn SerialPort>) {
     match task_read_device_info(port) {
-        Ok(info) => println!("Device info:\n{}", info),
+        Ok(info) => println!("{}", info),
         Err(e) => println!("Error reading device info: {}", e),
     }
 }
