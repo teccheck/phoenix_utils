@@ -88,6 +88,11 @@ pub fn command_read_feature_flags(
     Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
+pub fn command_read_firmware_build_id(port: &mut Box<dyn SerialPort>,) -> Result<String, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::SysReadFirmwareBuildId, &[])?;
+    Ok(decode_string(&rsp[3..]))
+}
+
 pub fn command_reset_device(
     port: &mut Box<dyn SerialPort>,
     reset_type: ResetType,
