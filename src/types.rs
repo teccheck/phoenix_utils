@@ -288,6 +288,7 @@ pub struct PartialStorageBlock {
 pub struct DeviceInfo {
     pub serial_number: String,
     pub firmware_version: String,
+    pub firmware_build_id: String,
     pub feature_flags: FeatureFlag,
 }
 
@@ -295,6 +296,7 @@ impl Display for DeviceInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Serial Number: {}", self.serial_number)?;
         writeln!(f, "Firmware Version: {}", self.firmware_version)?;
+        writeln!(f, "Firmware Build Id: {}", self.firmware_build_id)?;
         writeln!(f, "Feature Flags: [{}]", self.feature_flags)?;
 
         Ok(())
@@ -342,7 +344,7 @@ impl Error for AuthError {}
 pub enum DeviceType {
     /// Some kind of default/error value (perhaps unknown)
     A,
-    
+
     /// Unknown
     B,
 

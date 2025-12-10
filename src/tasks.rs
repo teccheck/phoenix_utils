@@ -5,7 +5,7 @@ use sha1::{Digest, Sha1};
 
 use crate::{
     commands::{
-        command_cra_cap_read, command_lock_key_auth, command_lock_key_write, command_read_feature_flags, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size
+        command_cra_cap_read, command_lock_key_auth, command_lock_key_write, command_read_feature_flags, command_read_firmware_build_id, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size
     },
     swion_result::SwionResult,
     types::{
@@ -101,11 +101,13 @@ pub fn task_print_device_info(port: &mut Box<dyn SerialPort>) {
 pub fn task_read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
     let serial_number = command_read_serial_number(port)?;
     let firmware_version = command_read_firmware_version(port)?;
+    let firmware_build_id = command_read_firmware_build_id(port)?;
     let feature_flags = command_read_feature_flags(port)?;
 
     Ok(DeviceInfo {
         serial_number,
         firmware_version,
+        firmware_build_id,
         feature_flags,
     })
 }
