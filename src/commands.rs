@@ -286,3 +286,59 @@ pub fn command_lock_key_write(
 
     Ok(())
 }
+
+pub fn command_key_press(port: &mut Box<dyn SerialPort>, key: u8) {
+    let args = [key];
+    let rsp = send_command(port, CommandType::KeyPress, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_key_release(port: &mut Box<dyn SerialPort>, key: u8) {
+    let args = [key];
+    let rsp = send_command(port, CommandType::KeyRelease, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_key_click(port: &mut Box<dyn SerialPort>) {
+    let args = [];
+    let rsp = send_command(port, CommandType::ToolsKeyClick, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_backlight_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) {
+    let args = [mode];
+    let rsp = send_command(port, CommandType::ToolsBacklightTestMode, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_backlight_normal_mode(port: &mut Box<dyn SerialPort>) {
+    let args = [];
+    let rsp = send_command(port, CommandType::ToolsBacklightNormalMode, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_led_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) {
+    let args = [mode];
+    let rsp = send_command(port, CommandType::ToolsLedTestMode, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_led_normal_mode(port: &mut Box<dyn SerialPort>) {
+    let args = [];
+    let rsp = send_command(port, CommandType::ToolsLedNormalMode, &args);
+
+    println!("{:X?}", rsp);
+}
+
+pub fn command_display_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) {
+    let args = [mode];
+    let rsp = send_command(port, CommandType::DisplayTestMode, &args);
+
+    println!("{:X?}", rsp);
+}

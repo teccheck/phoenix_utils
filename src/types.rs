@@ -61,8 +61,8 @@ pub enum CommandType {
     // Param 0 for normal
     DisplayTestMode = 0x1200,
     // These two are related and both named key press. They're propably press and release
-    KeyPress = 0x1300,
-    KeyReleaseMaybe = 0x1301,
+    KeyRelease = 0x1300,
+    KeyPress = 0x1301,
     StorageReadBlockPart = 0x1400,
     StorageWriteBlock = 0x1401,
     StorageDeleteBlock = 0x1402,
