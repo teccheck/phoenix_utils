@@ -6,6 +6,7 @@ This is in very early stages of development. Docs don't exist, and the code qual
 
 ## TODO
 
+- [ ] Dynamic buffer size in SCI Frame protocol
 - [ ] Error handling in commands via SwionResult and SwionError
 - [ ] Move utilities into utils crate or similar
 - [ ] Move CommandType into its own crate?
