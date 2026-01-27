@@ -8,7 +8,8 @@ use crate::{
     sci_frame_protocol::{decode_frame, encode_frame},
     swion_result::{SwionError, SwionResult},
     types::{
-        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions
+        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag,
+        PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions,
     },
 };
 
@@ -78,7 +79,21 @@ pub fn command_read_feature_flags(
     Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
-pub fn command_read_firmware_build_id(port: &mut Box<dyn SerialPort>,) -> Result<String, Box<dyn Error>> {
+pub fn command_write_feature_flags(
+    port: &mut Box<dyn SerialPort>,
+    flags: FeatureFlag,
+) -> Result<(), Box<dyn Error>> {
+    let mut data = [0, 0, 0, 0];
+    LittleEndian::write_u32(&mut data, flags.into());
+    println!("Data: {:X?}", data);
+
+    let rsp = send_command(port, CommandType::SysWriteFeatureFlags, &data)?;
+    Ok(())
+}
+
+pub fn command_read_firmware_build_id(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFirmwareBuildId, &[])?;
     Ok(decode_string(&rsp[3..]))
 }
@@ -156,7 +171,11 @@ pub fn command_read_storage_block_partial(
 
     let swion_result = SwionResult::parse_default(rsp[9]);
     if swion_result.is_error() {
-        return Err(SwionError::new("command_read_storage_block_partial".to_string(), swion_result).into());
+        return Err(SwionError::new(
+            "command_read_storage_block_partial".to_string(),
+            swion_result,
+        )
+        .into());
     }
 
     let block = PartialStorageBlock {
@@ -167,36 +186,6 @@ pub fn command_read_storage_block_partial(
     };
 
     Ok(block)
-}
-
-// No idea what to send here?
-pub fn command_write_feature_flags(
-    port: &mut Box<dyn SerialPort>,
-    flags: &[u8],
-) -> Result<(), Box<dyn Error>> {
-    let msg = [0x43, 0x03, 0x00];
-    let mut whole: Vec<u8> = Vec::new();
-    whole.extend_from_slice(&msg);
-    whole.extend_from_slice(flags);
-
-    let frame = encode_frame(&whole);
-    port.write_all(&frame)?;
-
-    let mut read_buf: [u8; 256] = [0; 256];
-    let size = port.read(&mut read_buf)?;
-    println!("Readbuf: {:x?}", read_buf);
-
-    let rsp = decode_frame(&read_buf[..size])?;
-
-    if rsp.len() < 5 {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            "writing feature flag failed",
-        )
-        .into());
-    }
-
-    Ok(())
 }
 
 pub fn command_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Box<dyn Error>> {

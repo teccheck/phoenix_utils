@@ -21,7 +21,9 @@ pub enum CommandType {
     // Used without any arguments. No clue how to continue after this
     SysStartFirmwareUpdate = 0x0004,
     SysReadFeatureFlags = 0x0006,
+    SysWriteFeatureFlags = 0x007,
     SysReadFirmwareBuildId = 0x0008,
+    // The following three are seemingly not for DE10A
     SysReadProductStringApplication = 0x0009,
     SysReadProductStringBootloader = 0x000A,
     SysReadHeapStatistics = 0x0060,
@@ -337,6 +339,24 @@ impl fmt::Display for AuthError {
 }
 
 impl Error for AuthError {}
+
+#[derive(Debug, Clone)]
+pub struct FeatureFlagNotFoundError {
+    pub flag_name: String,
+}
+
+impl fmt::Display for FeatureFlagNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Feature flag not valid: {}",
+            self.flag_name,
+        )?;
+        Ok(())
+    }
+}
+
+impl Error for FeatureFlagNotFoundError {}
 
 /// Not sure what they mean
 /// Also known as device generation

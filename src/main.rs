@@ -5,18 +5,18 @@ mod swion_result;
 mod tasks;
 mod types;
 
-use std::{time::Duration};
+use std::time::Duration;
 
 use clap::{Error, Parser, Subcommand};
 use clap_num::maybe_hex;
 use serialport::SerialPort;
 
 use crate::{
-    commands::{command_bootup_device, command_reset_device, command_shutdown_device},
+    commands::{
+        command_bootup_device, command_reset_device, command_shutdown_device,
+    },
     tasks::{
-        task_print_cra_capabilities, task_print_device_info, task_print_storage_block,
-        task_print_storage_directory, task_reset_password, task_set_password,
-        task_try_authenticate,
+        debug_task, task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_set_password, task_try_authenticate, task_write_feature_flags
     },
     types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
@@ -65,6 +65,9 @@ enum Commands {
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockLength>)]
         length: StorageBlockLength,
     },
+    SetFeatureFlags {
+        flags: Vec<String>,
+    },
     CRAReadCapabilities,
     ResetPassword,
     SetPassword {
@@ -111,7 +114,7 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
     return Ok(device_type);
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>>{
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = CmdArgs::parse();
 
     let welcome = "#######################################################################
@@ -175,6 +178,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
             Commands::ReadStorageBlock { id, offset, length } => {
                 task_print_storage_block(&mut port, id, offset, length)
             }
+            Commands::SetFeatureFlags { flags } => task_write_feature_flags(&mut port, flags),
             Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
             Commands::ResetPassword => task_reset_password(&mut port),
             Commands::SetPassword { password } => task_set_password(&mut port, password),
