@@ -5,14 +5,28 @@ use sha1::{Digest, Sha1};
 
 use crate::{
     commands::{
-        command_cra_cap_read, command_lock_key_auth, command_lock_key_write, command_read_feature_flags, command_read_firmware_build_id, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size
+        command_cra_cap_read, command_lock_key_auth, command_lock_key_write,
+        command_read_feature_flags, command_read_firmware_build_id, command_read_firmware_version,
+        command_read_serial_number, command_read_storage_block_info,
+        command_read_storage_block_partial, command_storage_directory_size,
+        debug_command,
     },
     swion_result::SwionResult,
     types::{
-        CRACapabilityFlags, DeviceInfo, StorageBlockId, StorageBlockInfo, StorageBlockLength,
-        StorageBlockOffset,
-    },
-};
+pub fn debug_task(
+    port: &mut Box<dyn SerialPort>,
+    command_type: u16,
+    data: Option<String>,
+) -> Result<(), Box<dyn Error>> {
+    let args = if let Some(d) = data {
+        decode_hex(&d)?
+    } else {
+        Vec::new()
+    };
+
+    debug_command(port, command_type, args.as_slice());
+    Ok(())
+}
 
 pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     println!("Reading Storage directory. This might take a few seconds...");

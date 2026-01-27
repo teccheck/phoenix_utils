@@ -70,6 +70,13 @@ enum Commands {
     SetPassword {
         password: String,
     },
+    Debug {
+        #[arg(value_parser=maybe_hex::<u16>)]
+        command_type: u16,
+
+        #[arg(long, help = "Args data")]
+        data: Option<String>,
+    },
 }
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
@@ -171,6 +178,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
             Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
             Commands::ResetPassword => task_reset_password(&mut port),
             Commands::SetPassword { password } => task_set_password(&mut port, password),
+            Commands::Debug { command_type, data } => debug_task(&mut port, command_type, data)
         };
 
         match result {

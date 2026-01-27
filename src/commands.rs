@@ -41,27 +41,17 @@ fn send_command_raw(
     Ok(rsp)
 }
 
-pub fn debug_command(
-    port: &mut Box<dyn SerialPort>,
-    command_type: u8,
-    command_sub_type: u8,
-    data: &[u8],
-) {
-    println!(
-        "Debug command {:X}{:X} ({}:{}):",
-        command_type, command_sub_type, command_type, command_sub_type
-    );
+pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[u8]) {
+    let cmd = command_type as u16;
 
-    println!("Data: {:X?}", data);
-
-    let result = send_command_raw(port, command_type, command_sub_type, data);
+    let result = send_command_raw(port, (cmd >> 8) as u8, (cmd & 0xFF) as u8, data);
     match result {
         Ok(data) => {
             println!("Ok: {:X?}", data);
-        },
+        }
         Err(e) => {
             println!("Err: {:?}", e);
-        },
+        }
     }
 
     println!("Done");
