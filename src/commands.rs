@@ -83,6 +83,11 @@ pub fn command_read_firmware_build_id(port: &mut Box<dyn SerialPort>,) -> Result
     Ok(decode_string(&rsp[3..]))
 }
 
+pub fn command_start_firmware_update(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::SysStartFirmwareUpdate, &[])?;
+    Ok(())
+}
+
 pub fn command_reset_device(
     port: &mut Box<dyn SerialPort>,
     reset_type: ResetType,
