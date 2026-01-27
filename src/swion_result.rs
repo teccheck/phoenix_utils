@@ -70,8 +70,8 @@ impl Error for SwionError {}
 impl SwionError {
     pub fn new(operation: String, reason: SwionResult) -> SwionError {
         SwionError {
-            operation: operation,
-            reason: reason,
+            operation,
+            reason,
         }
     }
 }

@@ -111,7 +111,7 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
         _ => DeviceType::A,
     };
 
-    return Ok(device_type);
+    Ok(device_type)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -1,4 +1,4 @@
-use encoding::{Encoding, all::ISO_8859_1};
+use encoding::all::ISO_8859_1;
 
 pub fn encode_string(text: &str) -> Vec<u8> {
     text.chars().map(encode_char).collect()
@@ -41,7 +41,7 @@ fn encode_char(c: char) -> u8 {
     };
 
     println!("Char: {c}, byte: {byte}");
-    return byte;
+    byte
 }
 
 pub fn decode_string(data: &[u8]) -> String {
@@ -82,6 +82,6 @@ fn decode_char(byte: &u8) -> char {
         157 => 'ť',
         158 => 'ż',
         159 => 'ź',
-        _ => char::from_u32((ISO_8859_1.index_forward)(*byte).into()).unwrap_or_else(|| ' '),
+        _ => char::from_u32((ISO_8859_1.index_forward)(*byte).into()).unwrap_or(' '),
     }
 }

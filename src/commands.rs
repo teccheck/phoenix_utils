@@ -43,9 +43,7 @@ fn send_command_raw(
 }
 
 pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[u8]) {
-    let cmd = command_type as u16;
-
-    let result = send_command_raw(port, (cmd >> 8) as u8, (cmd & 0xFF) as u8, data);
+    let result = send_command_raw(port, (command_type >> 8) as u8, (command_type & 0xFF) as u8, data);
     match result {
         Ok(data) => {
             println!("Ok: {:X?}", data);
@@ -125,7 +123,7 @@ pub fn command_delete_storage_block(
     port: &mut Box<dyn SerialPort>,
     id: StorageBlockId,
 ) -> Result<(), Box<dyn Error>> {
-    let mut data = [2, 0 as u8];
+    let mut data = [2, 0_u8];
     BigEndian::write_u16(&mut data, id);
     let rsp = send_command(port, CommandType::StorageDeleteBlock, &data)?;
     println!("rsp: {:x?}", rsp);
@@ -137,7 +135,7 @@ pub fn command_read_storage_block_info(
     port: &mut Box<dyn SerialPort>,
     index: u16,
 ) -> Result<StorageBlockInfo, Box<dyn Error>> {
-    let mut data = [2, 0 as u8];
+    let mut data = [2, 0_u8];
     BigEndian::write_u16(&mut data, index);
     let rsp = send_command(port, CommandType::StorageReadBlockInfo, &data)?;
 
@@ -256,7 +254,7 @@ pub fn command_lock_key_write(
     };
 
     let mut args: Vec<u8> = Vec::new();
-    args.extend_from_slice(&key);
+    args.extend_from_slice(key);
     args.extend([ep]);
 
     let rsp = send_command(port, CommandType::CRALockKeyWrite, &args)?;

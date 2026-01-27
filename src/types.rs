@@ -191,7 +191,7 @@ impl StorageBlockPermissions {
         } else {
             "-"
         };
-        return format!("{}{}{}{}", read, write, i, p);
+        format!("{}{}{}{}", read, write, i, p)
     }
 }
 

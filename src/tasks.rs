@@ -11,7 +11,6 @@ use crate::{
         command_read_storage_block_partial, command_storage_directory_size,
         command_write_feature_flags, debug_command,
     },
-    swion_result::SwionResult,
     types::{
         CRACapabilityFlags, DeviceInfo, FeatureFlag, FeatureFlagNotFoundError, StorageBlockId,
         StorageBlockInfo, StorageBlockLength, StorageBlockOffset,
@@ -50,7 +49,7 @@ fn parse_flags_vec(flags: Vec<String>) -> Result<FeatureFlag, Box<dyn Error>> {
     let new_flags = new_flags?
         .into_iter()
         .reduce(FeatureFlag::or)
-        .unwrap_or_else(|| FeatureFlag::none());
+        .unwrap_or_else(FeatureFlag::none);
 
     Ok(new_flags)
 }
