@@ -257,15 +257,15 @@ impl Display for CRACapabilityFlags {
 #[derive(Debug)]
 pub struct CRACapabilities {
     pub flags: CRACapabilityFlags,
-    pub payloadRequest: u16,
-    pub payloadResponse: u16,
+    pub payload_request: u16,
+    pub payload_response: u16,
 }
 
 impl Display for CRACapabilities {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Flags: {}", self.flags)?;
-        writeln!(f, "Payload Request: {}", self.payloadRequest)?;
-        writeln!(f, "Payload Response: {}", self.payloadResponse)?;
+        writeln!(f, "Payload Request: {}", self.payload_request)?;
+        writeln!(f, "Payload Response: {}", self.payload_response)?;
 
         Ok(())
     }

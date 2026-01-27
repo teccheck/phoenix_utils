@@ -219,8 +219,8 @@ pub fn command_cra_cap_read(
 
     Ok(CRACapabilities {
         flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[4..])),
-        payloadRequest: BigEndian::read_u16(&rsp[6..]),
-        payloadResponse: BigEndian::read_u16(&rsp[8..]),
+        payload_request: BigEndian::read_u16(&rsp[6..]),
+        payload_response: BigEndian::read_u16(&rsp[8..]),
     })
 }
 
