@@ -46,10 +46,7 @@ impl SwionResult {
     }
 
     pub fn is_error(&self) -> bool {
-        match self {
-            Self::Success => false,
-            _ => true,
-        }
+        !matches!(self, Self::Success)
     }
 }
 
