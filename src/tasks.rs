@@ -1,5 +1,6 @@
-use std::{error::Error, num::ParseIntError};
+use std::{error::Error, fs::File, io::Write, num::ParseIntError, path::Path};
 
+use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
 use sha1::{Digest, Sha1};
 
@@ -30,6 +31,66 @@ pub fn debug_task(
 
     debug_command(port, command_type, args.as_slice());
     Ok(())
+}
+
+pub fn task_dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    println!("Reading Storage directory. This might take a few seconds...");
+    let dir = task_read_storage_directory(port)?;
+
+    for block in dir {
+        let data = task_read_storage_block(port, block.id, 0, block.length);
+
+        //let text = if let Ok(real_data) = data {
+        //    String::from_utf8(real_data).unwrap_or_default()
+        //} else {
+        //    "[ERR]".to_string()
+        //};
+
+        println!(
+            "| {:>4x} | {:>7} | {:>6} | {:>5} | {:X?} |",
+            block.id,
+            block.version,
+            block.length,
+            block.permissions.flag_string(),
+            data,
+        );
+
+        match data {
+            Ok(d) => dump_storage_block_to_file(&block, &d),
+            Err(_) => {},
+        }
+    }
+
+    Ok(())
+}
+
+pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
+    let pathname = format!("blocks/block_{:0>4x}", block.id);
+        let path = Path::new(&pathname);
+        let display = path.display();
+
+        // Open a file in write-only mode, returns `io::Result<File>`
+        let mut file = match File::create(&path) {
+            Err(why) => panic!("couldn't create {}: {}", display, why),
+            Ok(file) => file,
+        };
+
+        // Write the `LOREM_IPSUM` string to `file`, returns `io::Result<()>`
+
+        let mut out_data: Vec<u8> = Vec::new();
+        let mut header = [0; 6];
+        LittleEndian::write_u16(&mut header, block.id);
+        header[2] = block.version;
+        LittleEndian::write_u16(&mut header[3..], block.length);
+        header[5] = block.permissions.bits();
+
+        out_data.extend_from_slice(&header);
+        out_data.extend_from_slice(data);
+
+        match file.write_all(&out_data) {
+            Err(why) => panic!("couldn't write to {}: {}", display, why),
+            Ok(_) => println!("successfully wrote to {}", display),
+        }
 }
 
 pub fn task_write_feature_flags(
@@ -86,8 +147,10 @@ pub fn task_read_storage_directory(
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
     let size = command_storage_directory_size(port)?;
     let mut blocks = vec![];
+    println!("Storage dir has size {size}");
 
     for i in 0..size {
+        print!("\rREAD DIR: {i} / {size}");
         let block = command_read_storage_block_info(port, i)?;
         blocks.push(block);
     }

@@ -16,7 +16,7 @@ use crate::{
         command_bootup_device, command_reset_device, command_shutdown_device,
     },
     tasks::{
-        debug_task, task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_set_password, task_try_authenticate, task_write_feature_flags
+        debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_set_password, task_try_authenticate, task_write_feature_flags
     },
     types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
@@ -57,6 +57,7 @@ enum Commands {
     Bootup,
     Shutdown,
     PrintStorageDir,
+    DumpStorage,
     ReadStorageBlock {
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockId>)]
         id: StorageBlockId,
@@ -175,6 +176,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Commands::Shutdown => command_shutdown_device(&mut port),
             Commands::Bootup => command_bootup_device(&mut port),
             Commands::PrintStorageDir => task_print_storage_directory(&mut port),
+            Commands::DumpStorage => task_dump_storage(&mut port),
             Commands::ReadStorageBlock { id, offset, length } => {
                 task_print_storage_block(&mut port, id, offset, length)
             }
