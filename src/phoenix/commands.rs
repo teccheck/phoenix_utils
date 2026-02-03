@@ -4,7 +4,7 @@ use byteorder::{BigEndian, ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
 use crate::{
-    phoenix::phoenix_encoding::decode_string,
+    phoenix::encoding::decode_string,
     phoenix::sci_frame_protocol::{decode_frame, encode_frame},
     phoenix::swion_result::{SwionError, SwionResult},
     phoenix::types::{
