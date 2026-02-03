@@ -9,11 +9,10 @@ use crate::{
         command_cra_cap_read, command_lock_key_auth, command_lock_key_write,
         command_read_feature_flags, command_read_firmware_build_id, command_read_firmware_version,
         command_read_serial_number, command_read_storage_block_info,
-        command_read_storage_block_partial, command_storage_directory_size,
-        command_write_feature_flags, debug_command,
+        command_read_storage_block_partial, command_storage_directory_size, debug_command,
     },
     phoenix::types::{
-        CRACapabilityFlags, DeviceInfo, FeatureFlag, FeatureFlagNotFoundError, StorageBlockId,
+        CRACapabilityFlags, DeviceInfo, StorageBlockId,
         StorageBlockInfo, StorageBlockLength, StorageBlockOffset,
     },
 };
@@ -57,7 +56,7 @@ pub fn task_dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
 
         match data {
             Ok(d) => dump_storage_block_to_file(&block, &d),
-            Err(_) => {},
+            Err(_) => {}
         }
     }
 
@@ -66,62 +65,31 @@ pub fn task_dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
 
 pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
     let pathname = format!("blocks/block_{:0>4x}", block.id);
-        let path = Path::new(&pathname);
-        let display = path.display();
+    let path = Path::new(&pathname);
+    let display = path.display();
 
-        // Open a file in write-only mode, returns `io::Result<File>`
-        let mut file = match File::create(&path) {
-            Err(why) => panic!("couldn't create {}: {}", display, why),
-            Ok(file) => file,
-        };
+    // Open a file in write-only mode, returns `io::Result<File>`
+    let mut file = match File::create(&path) {
+        Err(why) => panic!("couldn't create {}: {}", display, why),
+        Ok(file) => file,
+    };
 
-        // Write the `LOREM_IPSUM` string to `file`, returns `io::Result<()>`
+    // Write the `LOREM_IPSUM` string to `file`, returns `io::Result<()>`
 
-        let mut out_data: Vec<u8> = Vec::new();
-        let mut header = [0; 6];
-        LittleEndian::write_u16(&mut header, block.id);
-        header[2] = block.version;
-        LittleEndian::write_u16(&mut header[3..], block.length);
-        header[5] = block.permissions.bits();
+    let mut out_data: Vec<u8> = Vec::new();
+    let mut header = [0; 6];
+    LittleEndian::write_u16(&mut header, block.id);
+    header[2] = block.version;
+    LittleEndian::write_u16(&mut header[3..], block.length);
+    header[5] = block.permissions.bits();
 
-        out_data.extend_from_slice(&header);
-        out_data.extend_from_slice(data);
+    out_data.extend_from_slice(&header);
+    out_data.extend_from_slice(data);
 
-        match file.write_all(&out_data) {
-            Err(why) => panic!("couldn't write to {}: {}", display, why),
-            Ok(_) => println!("successfully wrote to {}", display),
-        }
-}
-
-pub fn task_write_feature_flags(
-    port: &mut Box<dyn SerialPort>,
-    flags: Vec<String>,
-) -> Result<(), Box<dyn Error>> {
-    let new_flags = parse_flags_vec(flags)?;
-    println!("Write Feature Flags: [{}]", new_flags);
-
-    command_write_feature_flags(port, new_flags)
-}
-
-fn parse_flags_vec(flags: Vec<String>) -> Result<FeatureFlag, Box<dyn Error>> {
-    let new_flags: Result<Vec<FeatureFlag>, FeatureFlagNotFoundError> =
-        flags.iter().map(find_feature_flag_by_string).collect();
-
-    let new_flags = new_flags?
-        .into_iter()
-        .reduce(FeatureFlag::or)
-        .unwrap_or_else(FeatureFlag::none);
-
-    Ok(new_flags)
-}
-
-fn find_feature_flag_by_string(flag: &String) -> Result<FeatureFlag, FeatureFlagNotFoundError> {
-    FeatureFlag::flags()
-        .find(|(n, _)| n.eq(flag))
-        .map(|(_, f)| *f)
-        .ok_or(FeatureFlagNotFoundError {
-            flag_name: flag.to_string(),
-        })
+    match file.write_all(&out_data) {
+        Err(why) => panic!("couldn't write to {}: {}", display, why),
+        Ok(_) => println!("successfully wrote to {}", display),
+    }
 }
 
 pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
