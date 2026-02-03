@@ -1,11 +1,12 @@
-pub mod commands;
+mod commands;
+mod types;
 
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
 
-use crate::{cli::commands::write_feature_flags, phoenix::{
+use crate::{cli::{commands::{backlight_mode, led_mode, write_feature_flags}, types::{BacklightMode, LedMode}}, phoenix::{
     commands::{command_bootup_device, command_reset_device, command_shutdown_device},
     raw_serial_protocol::handshake,
     tasks::{
@@ -69,6 +70,19 @@ pub enum Commands {
     SetPassword {
         password: String,
     },
+
+    /// Control the alarm LED (if there is one)
+    Led {
+        #[arg(value_enum)]
+        mode: LedMode,
+    },
+
+    /// Control the display backlight
+    Backlight {
+        #[arg(value_enum)]
+        mode: BacklightMode,
+    },
+
     Debug {
         #[arg(value_parser=maybe_hex::<u16>)]
         command_type: u16,
@@ -148,6 +162,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::ResetPassword => task_reset_password(&mut port),
             Commands::SetPassword { password } => task_set_password(&mut port, password),
             Commands::Debug { command_type, data } => debug_task(&mut port, command_type, data),
+            Commands::Led { mode } => led_mode(&mut port, mode),
+            Commands::Backlight { mode } => backlight_mode(&mut port, mode),
         };
 
         match result {
