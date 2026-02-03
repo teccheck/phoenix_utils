@@ -13,7 +13,7 @@ use crate::swion_result::SwionResult;
 /// plus its command variant (third encoded byte in sci frame)
 /// packed into a u16 with the high byte being the command type
 /// and the low byte being the variant.
-#[derive(Debug, FromRepr)]
+#[derive(Debug, FromRepr, Clone)]
 #[repr(u16)]
 pub enum CommandType {
     SysReadFirmwareVersion = 0x0001,
@@ -361,6 +361,35 @@ impl fmt::Display for FeatureFlagNotFoundError {
 }
 
 impl Error for FeatureFlagNotFoundError {}
+
+#[derive(Debug, Clone)]
+pub struct InvalidResponseTypeError {
+    pub type_required: u16,
+    pub type_actual: u16,
+}
+
+impl fmt::Display for InvalidResponseTypeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Response had invalid type. Should have been {:X?}, but was {:X?}",
+            self.type_required,
+            self.type_actual,
+        )?;
+        Ok(())
+    }
+}
+
+impl Error for InvalidResponseTypeError {}
+
+impl InvalidResponseTypeError {
+    pub fn new(type_required: u16, type_actual: u16) -> InvalidResponseTypeError {
+        InvalidResponseTypeError {
+            type_required,
+            type_actual,
+        }
+    }
+}
 
 /// Not sure what they mean
 /// Also known as device generation

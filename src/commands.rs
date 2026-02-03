@@ -8,8 +8,7 @@ use crate::{
     sci_frame_protocol::{decode_frame, encode_frame},
     swion_result::{SwionError, SwionResult},
     types::{
-        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag,
-        PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions,
+        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, InvalidResponseTypeError, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions
     },
 };
 
@@ -56,10 +55,36 @@ pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[
     println!("Done");
 }
 
+pub fn validate_command_response_type(resp: &[u8], type_required: u16) -> Result<&[u8], InvalidResponseTypeError> {
+    let type_actual = ((resp[0] as u16) << 8) + (resp[2] as u16);
+    if type_actual != type_required {
+        return Err(InvalidResponseTypeError::new(type_required, type_actual));
+    }
+
+    Ok(resp)
+}
+
+pub fn validate_command_response_result_default(resp: &[u8], operation_name: String) -> Result<&[u8], SwionError> {
+    validate_command_response_result(resp, SwionResult::parse_default(resp[3]), operation_name)
+}
+
+pub fn validate_command_response_result_var1(resp: &[u8], operation_name: String) -> Result<&[u8], SwionError> {
+    validate_command_response_result(resp, SwionResult::parse_var1(resp[3]), operation_name)
+}
+
+pub fn validate_command_response_result(resp: &[u8], result: SwionResult, operation_name: String) -> Result<&[u8], SwionError> {
+    if result.is_error() {
+        return Err(SwionError::new(operation_name, result));
+    }
+
+    Ok(resp)
+}
+
 pub fn command_read_firmware_version(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFirmwareVersion, &[])?;
+    validate_command_response_type(&rsp, CommandType::SysReadFirmwareVersion as u16)?;
     Ok(decode_string(&rsp[3..]))
 }
 
@@ -83,9 +108,11 @@ pub fn command_write_feature_flags(
 ) -> Result<(), Box<dyn Error>> {
     let mut data = [0, 0, 0, 0];
     LittleEndian::write_u32(&mut data, flags.into());
-    println!("Data: {:X?}", data);
-
     let rsp = send_command(port, CommandType::SysWriteFeatureFlags, &data)?;
+    println!("RSP: {:X?}", rsp);
+
+    validate_command_response_type(&rsp, CommandType::SysWriteFeatureFlags as u16)?;
+    validate_command_response_result_var1(&rsp, "command_write_feature_flags".to_string())?;
     Ok(())
 }
 
@@ -98,6 +125,8 @@ pub fn command_read_firmware_build_id(
 
 pub fn command_start_firmware_update(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysStartFirmwareUpdate, &[])?;
+    validate_command_response_type(&rsp, CommandType::SysStartFirmwareUpdate as u16)?;
+    validate_command_response_result_default(&rsp, "command_start_firmware_update".to_string())?;
     Ok(())
 }
 
