@@ -65,39 +65,38 @@ pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[
 pub fn validate_command_response_type(
     resp: &[u8],
     type_required: u16,
-) -> Result<&[u8], InvalidResponseTypeError> {
+) -> Result<(), InvalidResponseTypeError> {
     let type_actual = ((resp[0] as u16) << 8) + (resp[2] as u16);
     if type_actual != type_required {
         return Err(InvalidResponseTypeError::new(type_required, type_actual));
     }
 
-    Ok(resp)
+    Ok(())
 }
 
 pub fn validate_command_response_result_default(
     resp: &[u8],
-    operation_name: String,
-) -> Result<&[u8], SwionError> {
-    validate_command_response_result(resp, SwionResult::parse_default(resp[3]), operation_name)
+    operation_name: &str,
+) -> Result<(), SwionError> {
+    validate_command_response_result(SwionResult::parse_default(resp[3]), operation_name)
 }
 
 pub fn validate_command_response_result_var1(
     resp: &[u8],
-    operation_name: String,
-) -> Result<&[u8], SwionError> {
-    validate_command_response_result(resp, SwionResult::parse_var1(resp[3]), operation_name)
+    operation_name: &str,
+) -> Result<(), SwionError> {
+    validate_command_response_result(SwionResult::parse_var1(resp[3]), operation_name)
 }
 
-pub fn validate_command_response_result(
-    resp: &[u8],
+pub fn validate_command_response_result<'a>(
     result: SwionResult,
-    operation_name: String,
-) -> Result<&[u8], SwionError> {
+    operation_name: &str,
+) -> Result<(), SwionError> {
     if result.is_error() {
-        return Err(SwionError::new(operation_name, result));
+        return Err(SwionError::new(operation_name.to_string(), result));
     }
 
-    Ok(resp)
+    Ok(())
 }
 
 pub fn command_read_firmware_version(
@@ -132,7 +131,7 @@ pub fn command_write_feature_flags(
     println!("RSP: {:X?}", rsp);
 
     validate_command_response_type(&rsp, CommandType::SysWriteFeatureFlags as u16)?;
-    validate_command_response_result_var1(&rsp, "command_write_feature_flags".to_string())?;
+    validate_command_response_result_var1(&rsp, "command_write_feature_flags")?;
     Ok(())
 }
 
@@ -146,7 +145,7 @@ pub fn command_read_firmware_build_id(
 pub fn command_start_firmware_update(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysStartFirmwareUpdate, &[])?;
     validate_command_response_type(&rsp, CommandType::SysStartFirmwareUpdate as u16)?;
-    validate_command_response_result_default(&rsp, "command_start_firmware_update".to_string())?;
+    validate_command_response_result_default(&rsp, "command_start_firmware_update")?;
     Ok(())
 }
 
