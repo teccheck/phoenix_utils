@@ -2,18 +2,18 @@ mod phoenix;
 
 use std::time::Duration;
 
-use clap::{Error, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
-use serialport::SerialPort;
 
-use crate::{
-    phoenix::commands::{
-        command_bootup_device, command_reset_device, command_shutdown_device,
+use crate::phoenix::{
+    commands::{command_bootup_device, command_reset_device, command_shutdown_device},
+    raw_serial_protocol::handshake,
+    tasks::{
+        debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info,
+        task_print_storage_block, task_print_storage_directory, task_reset_password,
+        task_set_password, task_try_authenticate, task_write_feature_flags,
     },
-    phoenix::tasks::{
-        debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_set_password, task_try_authenticate, task_write_feature_flags
-    },
-    phoenix::types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+    types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
 
 #[derive(Parser)]
@@ -76,38 +76,6 @@ enum Commands {
         #[arg(long, help = "Args data")]
         data: Option<String>,
     },
-}
-
-fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
-    let hello: [u8; 3] = [0x55, 0x7e, 0x55];
-    let expected: [u8; 2] = [0x56, 0x56];
-
-    let mut read_buf: [u8; 2] = [0; 2];
-
-    loop {
-        port.write_all(&hello)?;
-        let size = port.read(&mut read_buf)?;
-
-        if size == 2 && read_buf.starts_with(&expected) {
-            println!("Handshake sucessful");
-            break;
-        }
-    }
-
-    let device_tpye_cmd: [u8; 1] = [0x55];
-    port.write_all(&device_tpye_cmd)?;
-    let size = port.read(&mut read_buf)?;
-
-    let device_type = match read_buf[0] {
-        0x55 => DeviceType::B,
-        0x56 => DeviceType::DE10A,
-        0x57 => DeviceType::D,
-        0x58 => DeviceType::E,
-        0x59 => DeviceType::F,
-        _ => DeviceType::A,
-    };
-
-    Ok(device_type)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -179,7 +147,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
             Commands::ResetPassword => task_reset_password(&mut port),
             Commands::SetPassword { password } => task_set_password(&mut port, password),
-            Commands::Debug { command_type, data } => debug_task(&mut port, command_type, data)
+            Commands::Debug { command_type, data } => debug_task(&mut port, command_type, data),
         };
 
         match result {
