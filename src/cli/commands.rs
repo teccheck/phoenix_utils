@@ -42,11 +42,10 @@ pub fn led_mode(
     port: &mut Box<dyn SerialPort>,
     mode: LedMode
 ) -> Result<(), Box<dyn Error>> {
-    // TODO: Results
     if matches!(mode, LedMode::Normal) {
-        command_led_normal_mode(port);
+        command_led_normal_mode(port)?;
     } else {
-        command_led_test_mode(port, mode as u8);
+        command_led_test_mode(port, mode as u8)?;
     }
 
     Ok(())
@@ -56,11 +55,10 @@ pub fn backlight_mode(
     port: &mut Box<dyn SerialPort>,
     mode: BacklightMode
 ) -> Result<(), Box<dyn Error>> {
-    // TODO: Results
     if matches!(mode, BacklightMode::Normal) {
-        command_backlight_normal_mode(port);
+        command_backlight_normal_mode(port)?;
     } else {
-        command_backlight_test_mode(port, mode as u8);
+        command_backlight_test_mode(port, mode as u8)?;
     }
 
     Ok(())

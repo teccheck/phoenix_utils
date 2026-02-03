@@ -345,37 +345,49 @@ pub fn command_key_click(port: &mut Box<dyn SerialPort>) {
     println!("{:X?}", rsp);
 }
 
-pub fn command_backlight_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) {
+pub fn command_backlight_test_mode(
+    port: &mut Box<dyn SerialPort>,
+    mode: u8,
+) -> Result<(), Box<dyn Error>> {
     let args = [mode];
-    let rsp = send_command(port, CommandType::ToolsBacklightTestMode, &args);
-
-    println!("{:X?}", rsp);
+    let rsp = send_command(port, CommandType::ToolsBacklightTestMode, &args)?;
+    validate_command_response_type(&rsp, CommandType::ToolsBacklightTestMode as u16)?;
+    validate_command_response_result_var1(&rsp, "command_backlight_test_mode")?;
+    Ok(())
 }
 
-pub fn command_backlight_normal_mode(port: &mut Box<dyn SerialPort>) {
-    let args = [];
-    let rsp = send_command(port, CommandType::ToolsBacklightNormalMode, &args);
-
-    println!("{:X?}", rsp);
+pub fn command_backlight_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::ToolsBacklightNormalMode, &[])?;
+    validate_command_response_type(&rsp, CommandType::ToolsBacklightNormalMode as u16)?;
+    validate_command_response_result_var1(&rsp, "command_backlight_normal_mode")?;
+    Ok(())
 }
 
-pub fn command_led_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) {
+pub fn command_led_test_mode(
+    port: &mut Box<dyn SerialPort>,
+    mode: u8,
+) -> Result<(), Box<dyn Error>> {
     let args = [mode];
-    let rsp = send_command(port, CommandType::ToolsLedTestMode, &args);
-
-    println!("{:X?}", rsp);
+    let rsp = send_command(port, CommandType::ToolsLedTestMode, &args)?;
+    validate_command_response_type(&rsp, CommandType::ToolsLedTestMode as u16)?;
+    validate_command_response_result_var1(&rsp, "command_led_test_mode")?;
+    Ok(())
 }
 
-pub fn command_led_normal_mode(port: &mut Box<dyn SerialPort>) {
-    let args = [];
-    let rsp = send_command(port, CommandType::ToolsLedNormalMode, &args);
-
-    println!("{:X?}", rsp);
+pub fn command_led_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::ToolsLedNormalMode, &[])?;
+    validate_command_response_type(&rsp, CommandType::ToolsLedNormalMode as u16)?;
+    validate_command_response_result_var1(&rsp, "command_led_normal_mode")?;
+    Ok(())
 }
 
-pub fn command_display_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) {
+pub fn command_display_test_mode(
+    port: &mut Box<dyn SerialPort>,
+    mode: u8,
+) -> Result<(), Box<dyn Error>> {
     let args = [mode];
-    let rsp = send_command(port, CommandType::DisplayTestMode, &args);
-
-    println!("{:X?}", rsp);
+    let rsp = send_command(port, CommandType::DisplayTestMode, &args)?;
+    validate_command_response_type(&rsp, CommandType::DisplayTestMode as u16)?;
+    validate_command_response_result_var1(&rsp, "command_display_test_mode")?;
+    Ok(())
 }
