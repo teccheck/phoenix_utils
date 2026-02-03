@@ -2,10 +2,15 @@ use std::error::Error;
 
 use serialport::SerialPort;
 
-use crate::{cli::types::{BacklightMode, LedMode}, phoenix::{
-    commands::{command_backlight_normal_mode, command_backlight_test_mode, command_led_normal_mode, command_led_test_mode, command_write_feature_flags},
+use crate::{
+    cli::types::{BacklightMode, LedMode, PagerKey},
+    phoenix::{
+        commands::{
+            command_backlight_normal_mode, command_backlight_test_mode, command_key_press, command_key_release, command_led_normal_mode, command_led_test_mode, command_write_feature_flags
+        },
     types::{FeatureFlag, FeatureFlagNotFoundError},
-}};
+    },
+};
 
 pub fn write_feature_flags(
     port: &mut Box<dyn SerialPort>,
@@ -62,4 +67,12 @@ pub fn backlight_mode(
     }
 
     Ok(())
+}
+
+pub fn key_press(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), Box<dyn Error>> {
+    command_key_press(port, key as u8)
+}
+
+pub fn key_release(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), Box<dyn Error>> {
+    command_key_release(port, key as u8)
 }

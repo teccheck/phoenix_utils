@@ -6,7 +6,12 @@ use std::time::Duration;
 use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
 
-use crate::{cli::{commands::{backlight_mode, led_mode, write_feature_flags}, types::{BacklightMode, LedMode}}, phoenix::{
+use crate::{
+    cli::{
+        commands::{backlight_mode, key_press, key_release, led_mode, write_feature_flags},
+        types::{BacklightMode, LedMode, PagerKey},
+    },
+    phoenix::{
     commands::{command_bootup_device, command_reset_device, command_shutdown_device},
     raw_serial_protocol::handshake,
     tasks::{
@@ -15,7 +20,8 @@ use crate::{cli::{commands::{backlight_mode, led_mode, write_feature_flags}, typ
         task_set_password, task_try_authenticate,
     },
     types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
-}};
+    },
+};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -81,6 +87,18 @@ pub enum Commands {
     Backlight {
         #[arg(value_enum)]
         mode: BacklightMode,
+    },
+
+    /// Send a virtual key press to the device
+    KeyPress {
+        #[arg(value_enum)]
+        key: PagerKey,
+    },
+
+    /// Send a virtual key release to the device
+    KeyRelease {
+        #[arg(value_enum)]
+        key: PagerKey,
     },
 
     Debug {
@@ -164,6 +182,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::Debug { command_type, data } => debug_task(&mut port, command_type, data),
             Commands::Led { mode } => led_mode(&mut port, mode),
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
+            Commands::KeyPress { key } => key_press(&mut port, key),
+            Commands::KeyRelease { key } => key_release(&mut port, key),
         };
 
         match result {

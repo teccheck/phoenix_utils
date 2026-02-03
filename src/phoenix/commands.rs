@@ -326,18 +326,18 @@ pub fn command_lock_key_write(
     Ok(())
 }
 
-pub fn command_key_press(port: &mut Box<dyn SerialPort>, key: u8) {
-    let args = [key];
-    let rsp = send_command(port, CommandType::KeyPress, &args);
-
-    println!("{:X?}", rsp);
+pub fn command_key_press(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::KeyPress, &[key])?;
+    validate_command_response_type(&rsp, CommandType::KeyPress)?;
+    validate_command_response_result_var1(&rsp, "command_key_press")?;
+    Ok(())
 }
 
-pub fn command_key_release(port: &mut Box<dyn SerialPort>, key: u8) {
-    let args = [key];
-    let rsp = send_command(port, CommandType::KeyRelease, &args);
-
-    println!("{:X?}", rsp);
+pub fn command_key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::KeyRelease, &[key])?;
+    validate_command_response_type(&rsp, CommandType::KeyRelease)?;
+    validate_command_response_result_var1(&rsp, "command_key_release")?;
+    Ok(())
 }
 
 pub fn command_key_click(port: &mut Box<dyn SerialPort>) {
