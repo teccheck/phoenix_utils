@@ -57,7 +57,7 @@ pub enum Commands {
         #[arg(value_enum, default_value_t = ResetType::Softreset)]
         reboot_type: ResetType,
     },
-    
+
     /// Start the device
     Bootup,
 
@@ -126,7 +126,7 @@ pub enum Commands {
         #[arg(value_parser=maybe_hex::<u16>)]
         command_type: u16,
 
-        #[arg(long, help = "Args data")]
+        #[arg(short, long, help = "Args data")]
         data: Option<String>,
     },
 }
