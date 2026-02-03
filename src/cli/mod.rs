@@ -8,17 +8,15 @@ use clap_num::maybe_hex;
 
 use crate::{
     cli::{
-        commands::{backlight_mode, feature_flags_read_enabled, feature_flags_read_supported, key_press, key_release, led_mode, write_feature_flags},
+        commands::{
+            backlight_mode, feature_flags_read_enabled, feature_flags_read_supported, key_press,
+            key_release, led_mode, write_feature_flags,
+        },
         types::{BacklightMode, LedMode, PagerKey},
     },
     phoenix::{
-        commands::{device_reset_startup, device_reset_reboot, device_reset_shutdown},
+        self,
         raw_serial_protocol::handshake,
-        tasks::{
-            debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info,
-            task_print_storage_block, task_print_storage_directory, task_reset_password,
-            task_set_password, task_try_authenticate,
-        },
         types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
     },
 };
@@ -176,10 +174,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("Device Type: {:?}", device_type);
 
     if args.info {
-        task_print_device_info(&mut port);
+        phoenix::tasks::print_device_info(&mut port);
     }
 
-    match task_try_authenticate(&mut port, args.auth, args.auth_hash) {
+    match phoenix::tasks::try_authenticate(&mut port, args.auth, args.auth_hash) {
         Ok(_) => {
             println!("Auth successful");
         }
@@ -191,21 +189,25 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(command) = args.command {
         let result = match command {
-            Commands::Reboot { reboot_type } => device_reset_reboot(&mut port, reboot_type),
-            Commands::Shutdown => device_reset_shutdown(&mut port),
-            Commands::Bootup => device_reset_startup(&mut port),
-            Commands::PrintStorageDir => task_print_storage_directory(&mut port),
-            Commands::DumpStorage => task_dump_storage(&mut port),
+            Commands::Reboot { reboot_type } => {
+                phoenix::commands::device_reset_reboot(&mut port, reboot_type)
+            }
+            Commands::Shutdown => phoenix::commands::device_reset_shutdown(&mut port),
+            Commands::Bootup => phoenix::commands::device_reset_startup(&mut port),
+            Commands::PrintStorageDir => phoenix::tasks::print_storage_directory(&mut port),
+            Commands::DumpStorage => phoenix::tasks::dump_storage(&mut port),
             Commands::ReadStorageBlock { id, offset, length } => {
-                task_print_storage_block(&mut port, id, offset, length)
+                phoenix::tasks::print_storage_block(&mut port, id, offset, length)
             }
             Commands::FeatureFlagsReadEnabled => feature_flags_read_enabled(&mut port),
             Commands::FeatureFlagsReadSupported => feature_flags_read_supported(&mut port),
             Commands::WriteFeatureFlags { flags } => write_feature_flags(&mut port, flags),
-            Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
-            Commands::ResetPassword => task_reset_password(&mut port),
-            Commands::SetPassword { password } => task_set_password(&mut port, password),
-            Commands::Debug { command_type, data } => debug_task(&mut port, command_type, data),
+            Commands::CRAReadCapabilities => phoenix::tasks::print_cra_capabilities(&mut port),
+            Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
+            Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),
+            Commands::Debug { command_type, data } => {
+                phoenix::tasks::debug_task(&mut port, command_type, data)
+            }
             Commands::Led { mode } => led_mode(&mut port, mode),
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
             Commands::KeyPress { key } => key_press(&mut port, key),

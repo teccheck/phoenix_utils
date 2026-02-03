@@ -5,13 +5,12 @@ use serialport::SerialPort;
 use crate::{
     cli::types::{BacklightMode, LedMode, PagerKey},
     phoenix::{
-        self, tasks,
-        types::{FeatureFlag, FeatureFlagNotFoundError},
+        self, types::{FeatureFlag, FeatureFlagNotFoundError},
     },
 };
 
 pub fn feature_flags_read_enabled(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let flags = tasks::feature_flags_read_enabled(port)?;
+    let flags = phoenix::tasks::feature_flags_read_enabled(port)?;
     println!("Enabled flags: [{}]", flags);
     Ok(())
 }

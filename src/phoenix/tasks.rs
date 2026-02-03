@@ -27,12 +27,12 @@ pub fn debug_task(
     Ok(())
 }
 
-pub fn task_dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     println!("Reading Storage directory. This might take a few seconds...");
-    let dir = task_read_storage_directory(port)?;
+    let dir = read_storage_directory(port)?;
 
     for block in dir {
-        let data = task_read_storage_block(port, block.id, 0, block.length);
+        let data = read_storage_block(port, block.id, 0, block.length);
 
         //let text = if let Ok(real_data) = data {
         //    String::from_utf8(real_data).unwrap_or_default()
@@ -83,9 +83,9 @@ pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
     }
 }
 
-pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     println!("Reading Storage directory. This might take a few seconds...");
-    let dir = task_read_storage_directory(port)?;
+    let dir = read_storage_directory(port)?;
 
     println!("| ID   | Version | Size   | Flags |");
     for block in dir {
@@ -101,7 +101,7 @@ pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<()
     Ok(())
 }
 
-pub fn task_read_storage_directory(
+pub fn read_storage_directory(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
     let size = commands::storage_read_dir_size(port)?;
@@ -117,18 +117,18 @@ pub fn task_read_storage_directory(
     Ok(blocks)
 }
 
-pub fn task_print_storage_block(
+pub fn print_storage_block(
     port: &mut Box<dyn SerialPort>,
     id: StorageBlockId,
     offset: StorageBlockOffset,
     length: StorageBlockLength,
 ) -> Result<(), Box<dyn Error>> {
-    let data = task_read_storage_block(port, id, offset, length)?;
+    let data = read_storage_block(port, id, offset, length)?;
     println!("Storage Block ({:X}): {:X?}", id, data);
     Ok(())
 }
 
-pub fn task_read_storage_block(
+pub fn read_storage_block(
     port: &mut Box<dyn SerialPort>,
     id: StorageBlockId,
     offset: StorageBlockOffset,
@@ -162,14 +162,14 @@ pub fn task_read_storage_block(
     Ok(data)
 }
 
-pub fn task_print_device_info(port: &mut Box<dyn SerialPort>) {
-    match task_read_device_info(port) {
+pub fn print_device_info(port: &mut Box<dyn SerialPort>) {
+    match read_device_info(port) {
         Ok(info) => println!("{}", info),
         Err(e) => println!("Error reading device info: {}", e),
     }
 }
 
-pub fn task_read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
+pub fn read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
     let serial_number = commands::sys_read_serial_number(port)?;
     let firmware_version = commands::sys_read_firmware_version(port)?;
     let firmware_build_id = commands::sys_read_firmware_build_id(port)?;
@@ -183,13 +183,13 @@ pub fn task_read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInf
     })
 }
 
-pub fn task_print_cra_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn print_cra_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let capabilities = commands::cra_capability_read(port)?;
     println!("Capabilities:\n{}", capabilities);
     Ok(())
 }
 
-pub fn task_try_authenticate(
+pub fn try_authenticate(
     port: &mut Box<dyn SerialPort>,
     password: Option<String>,
     hash_string: Option<String>,
@@ -206,11 +206,11 @@ pub fn task_try_authenticate(
 
     println!("Trying to authenticate...");
     if let Some(hash) = hash_string {
-        task_auth_hash_string(port, &hash)
+        auth_hash_string(port, &hash)
     } else if let Some(password) = password {
-        task_auth_password(port, password)
+        auth_password(port, password)
     } else {
-        task_auth_hash_string(port, "0000000000000000000000000000000000000000")
+        auth_hash_string(port, "0000000000000000000000000000000000000000")
     }
 }
 
@@ -221,7 +221,7 @@ fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
         .collect()
 }
 
-pub fn task_auth_hash_string(
+pub fn auth_hash_string(
     port: &mut Box<dyn SerialPort>,
     hash_string: &str,
 ) -> Result<(), Box<dyn Error>> {
@@ -229,7 +229,7 @@ pub fn task_auth_hash_string(
     commands::lock_key_read_and_auth(port, &hash)
 }
 
-pub fn task_auth_password(
+pub fn auth_password(
     port: &mut Box<dyn SerialPort>,
     password: String,
 ) -> Result<(), Box<dyn Error>> {
@@ -241,12 +241,12 @@ pub fn task_auth_password(
     commands::lock_key_read_and_auth(port, &hash)
 }
 
-pub fn task_reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let hash: [u8; 20] = [0; 20];
     commands::cra_lock_key_write(port, &hash, false)
 }
 
-pub fn task_set_password(
+pub fn set_password(
     port: &mut Box<dyn SerialPort>,
     password: String,
 ) -> Result<(), Box<dyn Error>> {
