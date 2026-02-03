@@ -6,11 +6,26 @@ use crate::{
     cli::types::{BacklightMode, LedMode, PagerKey},
     phoenix::{
         commands::{
-            command_backlight_normal_mode, command_backlight_test_mode, command_key_press, command_key_release, command_led_normal_mode, command_led_test_mode, command_write_feature_flags
+            command_backlight_normal_mode, command_backlight_test_mode, command_key_press,
+            command_key_release, command_led_normal_mode, command_led_test_mode,
+            command_read_feature_flags_available, command_write_feature_flags,
         },
+        tasks,
         types::{FeatureFlag, FeatureFlagNotFoundError},
     },
 };
+
+pub fn feature_flags_read_enabled(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let flags = tasks::feature_flags_read_enabled(port)?;
+    println!("Enabled flags: [{}]", flags);
+    Ok(())
+}
+
+pub fn feature_flags_read_supported(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let flags = command_read_feature_flags_available(port)?;
+    println!("Supported flags: [{}]", flags);
+    Ok(())
+}
 
 pub fn write_feature_flags(
     port: &mut Box<dyn SerialPort>,

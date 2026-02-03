@@ -4,16 +4,13 @@ use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
 use sha1::{Digest, Sha1};
 
-use crate::{
-    phoenix::commands::{
-        command_cra_cap_read, command_lock_key_auth, command_lock_key_write,
-        command_read_feature_flags, command_read_firmware_build_id, command_read_firmware_version,
-        command_read_serial_number, command_read_storage_block_info,
-        command_read_storage_block_partial, command_storage_directory_size, debug_command,
+use crate::phoenix::{
+    commands::{
+        command_cra_cap_read, command_lock_key_auth, command_lock_key_write, command_read_feature_flags, command_read_feature_flags_enabled, command_read_firmware_build_id, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size, debug_command
     },
-    phoenix::types::{
-        CRACapabilityFlags, DeviceInfo, StorageBlockId,
-        StorageBlockInfo, StorageBlockLength, StorageBlockOffset,
+    types::{
+        CRACapabilityFlags, DeviceInfo, FeatureFlag, StorageBlockId, StorageBlockInfo,
+        StorageBlockLength, StorageBlockOffset,
     },
 };
 
@@ -54,7 +51,9 @@ pub fn task_dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
             data,
         );
 
-        if let Ok(d) = data { dump_storage_block_to_file(&block, &d) }
+        if let Ok(d) = data {
+            dump_storage_block_to_file(&block, &d)
+        }
     }
 
     Ok(())
@@ -257,4 +256,15 @@ pub fn task_set_password(
     hasher.update(password);
     let hash = hasher.finalize();
     command_lock_key_write(port, &hash, false)
+}
+
+pub fn feature_flags_read_enabled(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<FeatureFlag, Box<dyn Error>> {
+    let caps = command_cra_cap_read(port)?;
+    if caps.flags.contains(CRACapabilityFlags::FeatureFlagCommands) {
+        command_read_feature_flags(port)
+    } else {
+        command_read_feature_flags_enabled(port)
+    }
 }

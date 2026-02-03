@@ -243,16 +243,16 @@ pub fn command_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>,
 
 pub fn command_read_feature_flags_enabled(
     port: &mut Box<dyn SerialPort>,
-) -> Result<u32, Box<dyn Error>> {
+) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadEnabled, &[])?;
-    Ok(LittleEndian::read_u32(&rsp[3..]))
+    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
 pub fn command_read_feature_flags_available(
     port: &mut Box<dyn SerialPort>,
-) -> Result<u32, Box<dyn Error>> {
+) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadSupported, &[])?;
-    Ok(LittleEndian::read_u32(&rsp[3..]))
+    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
 pub fn command_cra_cap_read(

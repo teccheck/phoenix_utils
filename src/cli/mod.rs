@@ -8,7 +8,7 @@ use clap_num::maybe_hex;
 
 use crate::{
     cli::{
-        commands::{backlight_mode, key_press, key_release, led_mode, write_feature_flags},
+        commands::{backlight_mode, feature_flags_read_enabled, feature_flags_read_supported, key_press, key_release, led_mode, write_feature_flags},
         types::{BacklightMode, LedMode, PagerKey},
     },
     phoenix::{
@@ -79,6 +79,9 @@ pub enum Commands {
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockLength>)]
         length: StorageBlockLength,
     },
+
+    FeatureFlagsReadEnabled,
+    FeatureFlagsReadSupported,
 
     /// Write feature flags to the device (replaces the previous value)
     WriteFeatureFlags {
@@ -196,6 +199,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::ReadStorageBlock { id, offset, length } => {
                 task_print_storage_block(&mut port, id, offset, length)
             }
+            Commands::FeatureFlagsReadEnabled => feature_flags_read_enabled(&mut port),
+            Commands::FeatureFlagsReadSupported => feature_flags_read_supported(&mut port),
             Commands::WriteFeatureFlags { flags } => write_feature_flags(&mut port, flags),
             Commands::CRAReadCapabilities => task_print_cra_capabilities(&mut port),
             Commands::ResetPassword => task_reset_password(&mut port),
