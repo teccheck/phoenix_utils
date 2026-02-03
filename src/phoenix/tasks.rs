@@ -5,14 +5,14 @@ use serialport::SerialPort;
 use sha1::{Digest, Sha1};
 
 use crate::{
-    commands::{
+    phoenix::commands::{
         command_cra_cap_read, command_lock_key_auth, command_lock_key_write,
         command_read_feature_flags, command_read_firmware_build_id, command_read_firmware_version,
         command_read_serial_number, command_read_storage_block_info,
         command_read_storage_block_partial, command_storage_directory_size,
         command_write_feature_flags, debug_command,
     },
-    types::{
+    phoenix::types::{
         CRACapabilityFlags, DeviceInfo, FeatureFlag, FeatureFlagNotFoundError, StorageBlockId,
         StorageBlockInfo, StorageBlockLength, StorageBlockOffset,
     },

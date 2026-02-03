@@ -4,11 +4,13 @@ use byteorder::{BigEndian, ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
 use crate::{
-    phoenix_encoding::decode_string,
-    sci_frame_protocol::{decode_frame, encode_frame},
-    swion_result::{SwionError, SwionResult},
-    types::{
-        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag, InvalidResponseTypeError, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo, StorageBlockPermissions
+    phoenix::phoenix_encoding::decode_string,
+    phoenix::sci_frame_protocol::{decode_frame, encode_frame},
+    phoenix::swion_result::{SwionError, SwionResult},
+    phoenix::types::{
+        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag,
+        InvalidResponseTypeError, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo,
+        StorageBlockPermissions,
     },
 };
 
@@ -42,7 +44,12 @@ fn send_command_raw(
 }
 
 pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[u8]) {
-    let result = send_command_raw(port, (command_type >> 8) as u8, (command_type & 0xFF) as u8, data);
+    let result = send_command_raw(
+        port,
+        (command_type >> 8) as u8,
+        (command_type & 0xFF) as u8,
+        data,
+    );
     match result {
         Ok(data) => {
             println!("Ok: {:X?}", data);
@@ -55,7 +62,10 @@ pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[
     println!("Done");
 }
 
-pub fn validate_command_response_type(resp: &[u8], type_required: u16) -> Result<&[u8], InvalidResponseTypeError> {
+pub fn validate_command_response_type(
+    resp: &[u8],
+    type_required: u16,
+) -> Result<&[u8], InvalidResponseTypeError> {
     let type_actual = ((resp[0] as u16) << 8) + (resp[2] as u16);
     if type_actual != type_required {
         return Err(InvalidResponseTypeError::new(type_required, type_actual));
@@ -64,15 +74,25 @@ pub fn validate_command_response_type(resp: &[u8], type_required: u16) -> Result
     Ok(resp)
 }
 
-pub fn validate_command_response_result_default(resp: &[u8], operation_name: String) -> Result<&[u8], SwionError> {
+pub fn validate_command_response_result_default(
+    resp: &[u8],
+    operation_name: String,
+) -> Result<&[u8], SwionError> {
     validate_command_response_result(resp, SwionResult::parse_default(resp[3]), operation_name)
 }
 
-pub fn validate_command_response_result_var1(resp: &[u8], operation_name: String) -> Result<&[u8], SwionError> {
+pub fn validate_command_response_result_var1(
+    resp: &[u8],
+    operation_name: String,
+) -> Result<&[u8], SwionError> {
     validate_command_response_result(resp, SwionResult::parse_var1(resp[3]), operation_name)
 }
 
-pub fn validate_command_response_result(resp: &[u8], result: SwionResult, operation_name: String) -> Result<&[u8], SwionError> {
+pub fn validate_command_response_result(
+    resp: &[u8],
+    result: SwionResult,
+    operation_name: String,
+) -> Result<&[u8], SwionError> {
     if result.is_error() {
         return Err(SwionError::new(operation_name, result));
     }
@@ -266,7 +286,8 @@ pub fn command_lock_key_auth(
             locked_until_month: rsp[6],
             locked_until_year: BigEndian::read_u16(&rsp[7..]),
             enhanced_protection: rsp[9],
-        }.into());
+        }
+        .into());
     }
 
     Ok(())
@@ -297,7 +318,8 @@ pub fn command_lock_key_write(
             locked_until_month: rsp[6],
             locked_until_year: BigEndian::read_u16(&rsp[7..]),
             enhanced_protection: rsp[9],
-        }.into());
+        }
+        .into());
     }
 
     Ok(())

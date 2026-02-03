@@ -7,7 +7,7 @@ use bitmask_enum::bitmask;
 use clap::{Parser, ValueEnum};
 use strum::{Display, FromRepr};
 
-use crate::swion_result::SwionResult;
+use crate::phoenix::swion_result::SwionResult;
 
 /// This represents a command type (first encoded byte in sci frame)
 /// plus its command variant (third encoded byte in sci frame)

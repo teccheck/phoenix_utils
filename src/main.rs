@@ -1,9 +1,4 @@
-mod commands;
-mod phoenix_encoding;
-mod sci_frame_protocol;
-mod swion_result;
-mod tasks;
-mod types;
+mod phoenix;
 
 use std::time::Duration;
 
@@ -12,13 +7,13 @@ use clap_num::maybe_hex;
 use serialport::SerialPort;
 
 use crate::{
-    commands::{
+    phoenix::commands::{
         command_bootup_device, command_reset_device, command_shutdown_device,
     },
-    tasks::{
+    phoenix::tasks::{
         debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info, task_print_storage_block, task_print_storage_directory, task_reset_password, task_set_password, task_try_authenticate, task_write_feature_flags
     },
-    types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+    phoenix::types::{DeviceType, ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
 };
 
 #[derive(Parser)]
