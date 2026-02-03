@@ -52,14 +52,25 @@ struct CmdArgs {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Reboot the device
     Reboot {
-        #[arg(short, long, value_enum, default_value_t = ResetType::Softreset)]
+        #[arg(value_enum, default_value_t = ResetType::Softreset)]
         reboot_type: ResetType,
     },
+    
+    /// Start the device
     Bootup,
+
+    /// Shut the device down
     Shutdown,
+
+    /// Print storage blocks in directory with their metadata
     PrintStorageDir,
+
+    /// Dump all storage blocks from directory into files
     DumpStorage,
+
+    /// Read the specified storage block with length and offset
     ReadStorageBlock {
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockId>)]
         id: StorageBlockId,
@@ -68,11 +79,19 @@ pub enum Commands {
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockLength>)]
         length: StorageBlockLength,
     },
+
+    /// Write feature flags to the device (replaces the previous value)
     WriteFeatureFlags {
         flags: Vec<String>,
     },
+
+    /// Read all command families this device supports
     CRAReadCapabilities,
+
+    /// Reset the devices programming password (only on firmware < 4)
     ResetPassword,
+
+    /// Set a new programming password (only on firmware < 4)
     SetPassword {
         password: String,
     },
