@@ -8,7 +8,7 @@ use crate::{
         commands::{
             command_backlight_normal_mode, command_backlight_test_mode, command_key_press, command_key_release, command_led_normal_mode, command_led_test_mode, command_write_feature_flags
         },
-    types::{FeatureFlag, FeatureFlagNotFoundError},
+        types::{FeatureFlag, FeatureFlagNotFoundError},
     },
 };
 
@@ -43,10 +43,7 @@ fn find_feature_flag_by_string(flag: &String) -> Result<FeatureFlag, FeatureFlag
         })
 }
 
-pub fn led_mode(
-    port: &mut Box<dyn SerialPort>,
-    mode: LedMode
-) -> Result<(), Box<dyn Error>> {
+pub fn led_mode(port: &mut Box<dyn SerialPort>, mode: LedMode) -> Result<(), Box<dyn Error>> {
     if matches!(mode, LedMode::Normal) {
         command_led_normal_mode(port)?;
     } else {
@@ -58,7 +55,7 @@ pub fn led_mode(
 
 pub fn backlight_mode(
     port: &mut Box<dyn SerialPort>,
-    mode: BacklightMode
+    mode: BacklightMode,
 ) -> Result<(), Box<dyn Error>> {
     if matches!(mode, BacklightMode::Normal) {
         command_backlight_normal_mode(port)?;
