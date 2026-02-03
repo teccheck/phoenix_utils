@@ -12,14 +12,14 @@ use crate::{
         types::{BacklightMode, LedMode, PagerKey},
     },
     phoenix::{
-    commands::{command_bootup_device, command_reset_device, command_shutdown_device},
-    raw_serial_protocol::handshake,
-    tasks::{
-        debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info,
-        task_print_storage_block, task_print_storage_directory, task_reset_password,
-        task_set_password, task_try_authenticate,
-    },
-    types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+        commands::{command_bootup_device, command_reset_device, command_shutdown_device},
+        raw_serial_protocol::handshake,
+        tasks::{
+            debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info,
+            task_print_storage_block, task_print_storage_directory, task_reset_password,
+            task_set_password, task_try_authenticate,
+        },
+        types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
     },
 };
 
@@ -101,6 +101,8 @@ pub enum Commands {
         key: PagerKey,
     },
 
+    /// Try out an arbitrary command code with optional data.
+    /// Might have unforeseen consequences. Use carefully!
     Debug {
         #[arg(value_parser=maybe_hex::<u16>)]
         command_type: u16,
