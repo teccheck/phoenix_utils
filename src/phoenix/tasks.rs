@@ -54,10 +54,7 @@ pub fn task_dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
             data,
         );
 
-        match data {
-            Ok(d) => dump_storage_block_to_file(&block, &d),
-            Err(_) => {}
-        }
+        if let Ok(d) = data { dump_storage_block_to_file(&block, &d) }
     }
 
     Ok(())
@@ -68,13 +65,10 @@ pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
     let path = Path::new(&pathname);
     let display = path.display();
 
-    // Open a file in write-only mode, returns `io::Result<File>`
-    let mut file = match File::create(&path) {
+    let mut file = match File::create(path) {
         Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
-
-    // Write the `LOREM_IPSUM` string to `file`, returns `io::Result<()>`
 
     let mut out_data: Vec<u8> = Vec::new();
     let mut header = [0; 6];
