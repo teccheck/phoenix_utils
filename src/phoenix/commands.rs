@@ -101,7 +101,7 @@ pub fn validate_command_response_result<'a>(
     Ok(())
 }
 
-pub fn command_read_firmware_version(
+pub fn sys_read_firmware_version(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFirmwareVersion, &[])?;
@@ -109,21 +109,21 @@ pub fn command_read_firmware_version(
     Ok(decode_string(&rsp[3..]))
 }
 
-pub fn command_read_serial_number(
+pub fn sys_read_serial_number(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadSerialNumber, &[])?;
     Ok(decode_string(&rsp[3..]))
 }
 
-pub fn command_read_feature_flags(
+pub fn sys_read_feature_flags(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFeatureFlags, &[])?;
     Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
-pub fn command_write_feature_flags(
+pub fn sys_write_feature_flags(
     port: &mut Box<dyn SerialPort>,
     flags: FeatureFlag,
 ) -> Result<(), Box<dyn Error>> {
@@ -137,21 +137,21 @@ pub fn command_write_feature_flags(
     Ok(())
 }
 
-pub fn command_read_firmware_build_id(
+pub fn sys_read_firmware_build_id(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<String, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFirmwareBuildId, &[])?;
     Ok(decode_string(&rsp[3..]))
 }
 
-pub fn command_start_firmware_update(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn sys_start_firmware_update(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysStartFirmwareUpdate, &[])?;
     validate_command_response_type(&rsp, CommandType::SysStartFirmwareUpdate)?;
     validate_command_response_result_default(&rsp, "command_start_firmware_update")?;
     Ok(())
 }
 
-pub fn command_reset_device(
+pub fn device_reset_reboot(
     port: &mut Box<dyn SerialPort>,
     reset_type: ResetType,
 ) -> Result<(), Box<dyn Error>> {
@@ -159,17 +159,17 @@ pub fn command_reset_device(
     Ok(())
 }
 
-pub fn command_shutdown_device(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn device_reset_shutdown(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let _ = send_command(port, CommandType::DeviceResetShutdown, &[])?;
     Ok(())
 }
 
-pub fn command_bootup_device(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn device_reset_startup(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let _ = send_command(port, CommandType::DeviceResetStartup, &[])?;
     Ok(())
 }
 
-pub fn command_delete_storage_block(
+pub fn storage_delete_block(
     port: &mut Box<dyn SerialPort>,
     id: StorageBlockId,
 ) -> Result<(), Box<dyn Error>> {
@@ -181,7 +181,7 @@ pub fn command_delete_storage_block(
     Ok(())
 }
 
-pub fn command_read_storage_block_info(
+pub fn storage_read_block_info(
     port: &mut Box<dyn SerialPort>,
     index: u16,
 ) -> Result<StorageBlockInfo, Box<dyn Error>> {
@@ -197,14 +197,14 @@ pub fn command_read_storage_block_info(
     })
 }
 
-pub fn command_storage_directory_size(
+pub fn storage_read_dir_size(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<u16, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadDirSize, &[])?;
     Ok(BigEndian::read_u16(&rsp[3..5]))
 }
 
-pub fn command_read_storage_block_partial(
+pub fn storage_read_block_part(
     port: &mut Box<dyn SerialPort>,
     id: u16,
     offset: u16,
@@ -236,26 +236,26 @@ pub fn command_read_storage_block_partial(
     Ok(block)
 }
 
-pub fn command_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn feature_flags_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadUniqueId, &[])?;
     Ok(rsp[3..].to_vec())
 }
 
-pub fn command_read_feature_flags_enabled(
+pub fn feature_flags_read_enabled(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadEnabled, &[])?;
     Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
-pub fn command_read_feature_flags_available(
+pub fn feature_flags_read_supported(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadSupported, &[])?;
     Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
-pub fn command_cra_cap_read(
+pub fn cra_capability_read(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<CRACapabilities, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
@@ -272,7 +272,7 @@ pub fn command_cra_cap_read(
     })
 }
 
-pub fn command_lock_key_auth(
+pub fn lock_key_read_and_auth(
     port: &mut Box<dyn SerialPort>,
     key: &[u8],
 ) -> Result<(), Box<dyn Error>> {
@@ -294,7 +294,7 @@ pub fn command_lock_key_auth(
     Ok(())
 }
 
-pub fn command_lock_key_write(
+pub fn cra_lock_key_write(
     port: &mut Box<dyn SerialPort>,
     key: &[u8],
     enhanced_protection: bool,
@@ -326,28 +326,28 @@ pub fn command_lock_key_write(
     Ok(())
 }
 
-pub fn command_key_press(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
+pub fn key_press(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::KeyPress, &[key])?;
     validate_command_response_type(&rsp, CommandType::KeyPress)?;
     validate_command_response_result_var1(&rsp, "command_key_press")?;
     Ok(())
 }
 
-pub fn command_key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
+pub fn key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::KeyRelease, &[key])?;
     validate_command_response_type(&rsp, CommandType::KeyRelease)?;
     validate_command_response_result_var1(&rsp, "command_key_release")?;
     Ok(())
 }
 
-pub fn command_key_click(port: &mut Box<dyn SerialPort>) {
+pub fn tools_key_click(port: &mut Box<dyn SerialPort>) {
     let args = [];
     let rsp = send_command(port, CommandType::ToolsKeyClick, &args);
 
     println!("{:X?}", rsp);
 }
 
-pub fn command_backlight_test_mode(
+pub fn tools_backlight_test_mode(
     port: &mut Box<dyn SerialPort>,
     mode: u8,
 ) -> Result<(), Box<dyn Error>> {
@@ -358,14 +358,14 @@ pub fn command_backlight_test_mode(
     Ok(())
 }
 
-pub fn command_backlight_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn tools_backlight_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::ToolsBacklightNormalMode, &[])?;
     validate_command_response_type(&rsp, CommandType::ToolsBacklightNormalMode)?;
     validate_command_response_result_var1(&rsp, "command_backlight_normal_mode")?;
     Ok(())
 }
 
-pub fn command_led_test_mode(
+pub fn tools_led_test_mode(
     port: &mut Box<dyn SerialPort>,
     mode: u8,
 ) -> Result<(), Box<dyn Error>> {
@@ -376,14 +376,14 @@ pub fn command_led_test_mode(
     Ok(())
 }
 
-pub fn command_led_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+pub fn tools_led_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::ToolsLedNormalMode, &[])?;
     validate_command_response_type(&rsp, CommandType::ToolsLedNormalMode)?;
     validate_command_response_result_var1(&rsp, "command_led_normal_mode")?;
     Ok(())
 }
 
-pub fn command_display_test_mode(
+pub fn display_test_mode(
     port: &mut Box<dyn SerialPort>,
     mode: u8,
 ) -> Result<(), Box<dyn Error>> {

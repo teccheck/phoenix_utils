@@ -5,9 +5,7 @@ use serialport::SerialPort;
 use sha1::{Digest, Sha1};
 
 use crate::phoenix::{
-    commands::{
-        command_cra_cap_read, command_lock_key_auth, command_lock_key_write, command_read_feature_flags, command_read_feature_flags_enabled, command_read_firmware_build_id, command_read_firmware_version, command_read_serial_number, command_read_storage_block_info, command_read_storage_block_partial, command_storage_directory_size, debug_command
-    },
+    commands,
     types::{
         CRACapabilityFlags, DeviceInfo, FeatureFlag, StorageBlockId, StorageBlockInfo,
         StorageBlockLength, StorageBlockOffset,
@@ -25,7 +23,7 @@ pub fn debug_task(
         Vec::new()
     };
 
-    debug_command(port, command_type, args.as_slice());
+    commands::debug_command(port, command_type, args.as_slice());
     Ok(())
 }
 
@@ -106,13 +104,13 @@ pub fn task_print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<()
 pub fn task_read_storage_directory(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
-    let size = command_storage_directory_size(port)?;
+    let size = commands::storage_read_dir_size(port)?;
     let mut blocks = vec![];
     println!("Storage dir has size {size}");
 
     for i in 0..size {
         print!("\rREAD DIR: {i} / {size}");
-        let block = command_read_storage_block_info(port, i)?;
+        let block = commands::storage_read_block_info(port, i)?;
         blocks.push(block);
     }
 
@@ -156,7 +154,7 @@ pub fn task_read_storage_block(
             break;
         }
 
-        let block = command_read_storage_block_partial(port, id, offset, len)?;
+        let block = commands::storage_read_block_part(port, id, offset, len)?;
         data.extend_from_slice(&block.data);
         index += 1;
     }
@@ -172,10 +170,10 @@ pub fn task_print_device_info(port: &mut Box<dyn SerialPort>) {
 }
 
 pub fn task_read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
-    let serial_number = command_read_serial_number(port)?;
-    let firmware_version = command_read_firmware_version(port)?;
-    let firmware_build_id = command_read_firmware_build_id(port)?;
-    let feature_flags = command_read_feature_flags(port)?;
+    let serial_number = commands::sys_read_serial_number(port)?;
+    let firmware_version = commands::sys_read_firmware_version(port)?;
+    let firmware_build_id = commands::sys_read_firmware_build_id(port)?;
+    let feature_flags = commands::sys_read_feature_flags(port)?;
 
     Ok(DeviceInfo {
         serial_number,
@@ -186,7 +184,7 @@ pub fn task_read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInf
 }
 
 pub fn task_print_cra_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let capabilities = command_cra_cap_read(port)?;
+    let capabilities = commands::cra_capability_read(port)?;
     println!("Capabilities:\n{}", capabilities);
     Ok(())
 }
@@ -196,7 +194,7 @@ pub fn task_try_authenticate(
     password: Option<String>,
     hash_string: Option<String>,
 ) -> Result<(), Box<dyn Error>> {
-    let caps = command_cra_cap_read(port)?;
+    let caps = commands::cra_capability_read(port)?;
 
     let needs_auth = caps.flags.contains(CRACapabilityFlags::LockKeyCommands)
         || caps.flags.contains(CRACapabilityFlags::LockKeyCRACommands);
@@ -228,7 +226,7 @@ pub fn task_auth_hash_string(
     hash_string: &str,
 ) -> Result<(), Box<dyn Error>> {
     let hash = decode_hex(hash_string)?;
-    command_lock_key_auth(port, &hash)
+    commands::lock_key_read_and_auth(port, &hash)
 }
 
 pub fn task_auth_password(
@@ -240,12 +238,12 @@ pub fn task_auth_password(
     let hash = hasher.finalize();
     println!("Password Hash: {:X}", hash);
 
-    command_lock_key_auth(port, &hash)
+    commands::lock_key_read_and_auth(port, &hash)
 }
 
 pub fn task_reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let hash: [u8; 20] = [0; 20];
-    command_lock_key_write(port, &hash, false)
+    commands::cra_lock_key_write(port, &hash, false)
 }
 
 pub fn task_set_password(
@@ -255,16 +253,16 @@ pub fn task_set_password(
     let mut hasher = Sha1::new();
     hasher.update(password);
     let hash = hasher.finalize();
-    command_lock_key_write(port, &hash, false)
+    commands::cra_lock_key_write(port, &hash, false)
 }
 
 pub fn feature_flags_read_enabled(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<FeatureFlag, Box<dyn Error>> {
-    let caps = command_cra_cap_read(port)?;
+    let caps = commands::cra_capability_read(port)?;
     if caps.flags.contains(CRACapabilityFlags::FeatureFlagCommands) {
-        command_read_feature_flags(port)
+        commands::sys_read_feature_flags(port)
     } else {
-        command_read_feature_flags_enabled(port)
+        commands::feature_flags_read_enabled(port)
     }
 }

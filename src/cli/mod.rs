@@ -12,7 +12,7 @@ use crate::{
         types::{BacklightMode, LedMode, PagerKey},
     },
     phoenix::{
-        commands::{command_bootup_device, command_reset_device, command_shutdown_device},
+        commands::{device_reset_startup, device_reset_reboot, device_reset_shutdown},
         raw_serial_protocol::handshake,
         tasks::{
             debug_task, task_dump_storage, task_print_cra_capabilities, task_print_device_info,
@@ -191,9 +191,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(command) = args.command {
         let result = match command {
-            Commands::Reboot { reboot_type } => command_reset_device(&mut port, reboot_type),
-            Commands::Shutdown => command_shutdown_device(&mut port),
-            Commands::Bootup => command_bootup_device(&mut port),
+            Commands::Reboot { reboot_type } => device_reset_reboot(&mut port, reboot_type),
+            Commands::Shutdown => device_reset_shutdown(&mut port),
+            Commands::Bootup => device_reset_startup(&mut port),
             Commands::PrintStorageDir => task_print_storage_directory(&mut port),
             Commands::DumpStorage => task_dump_storage(&mut port),
             Commands::ReadStorageBlock { id, offset, length } => {
