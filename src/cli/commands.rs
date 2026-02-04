@@ -96,9 +96,9 @@ fn find_feature_flag_by_string(flag: &String) -> Result<FeatureFlag, FeatureFlag
 
 pub fn led_mode(port: &mut Box<dyn SerialPort>, mode: LedMode) -> Result<(), Box<dyn Error>> {
     if matches!(mode, LedMode::Normal) {
-        phoenix::commands::tools_led_normal_mode(port)?;
+        phoenix::commands::tools::led_normal_mode(port)?;
     } else {
-        phoenix::commands::tools_led_test_mode(port, mode as u8)?;
+        phoenix::commands::tools::led_test_mode(port, mode as u8)?;
     }
 
     Ok(())
@@ -109,9 +109,9 @@ pub fn backlight_mode(
     mode: BacklightMode,
 ) -> Result<(), Box<dyn Error>> {
     if matches!(mode, BacklightMode::Normal) {
-        phoenix::commands::tools_backlight_normal_mode(port)?;
+        phoenix::commands::tools::backlight_normal_mode(port)?;
     } else {
-        phoenix::commands::tools_backlight_test_mode(port, mode as u8)?;
+        phoenix::commands::tools::backlight_test_mode(port, mode as u8)?;
     }
 
     Ok(())
