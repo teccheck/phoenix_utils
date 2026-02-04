@@ -121,6 +121,9 @@ pub enum Commands {
         key: PagerKey,
     },
 
+    /// Makes the key press click sound
+    KeyClick,
+
     TimeSet {
         #[arg(help = "Set a custom UTC time. Format: 2012-01-30T15:30:59")]
         time: Option<String>,
@@ -222,6 +225,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
             Commands::KeyPress { key } => key_press(&mut port, key),
             Commands::KeyRelease { key } => key_release(&mut port, key),
+            Commands::KeyClick => phoenix::commands::tools::key_click(&mut port),
             Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
         };
