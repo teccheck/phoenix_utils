@@ -1,4 +1,5 @@
 pub mod device_reset;
+pub mod feature_flags;
 pub mod storage;
 pub mod sys;
 pub mod tools;
@@ -104,25 +105,6 @@ pub fn validate_command_response_result<'a>(
     }
 
     Ok(())
-}
-
-pub fn feature_flags_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::FeatureFlagsReadUniqueId, &[])?;
-    Ok(rsp[3..].to_vec())
-}
-
-pub fn feature_flags_read_enabled(
-    port: &mut Box<dyn SerialPort>,
-) -> Result<FeatureFlag, Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::FeatureFlagsReadEnabled, &[])?;
-    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
-}
-
-pub fn feature_flags_read_supported(
-    port: &mut Box<dyn SerialPort>,
-) -> Result<FeatureFlag, Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::FeatureFlagsReadSupported, &[])?;
-    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp[3..])))
 }
 
 pub fn cra_capability_read(

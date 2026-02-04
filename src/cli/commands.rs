@@ -58,7 +58,7 @@ pub fn feature_flags_read_enabled(port: &mut Box<dyn SerialPort>) -> Result<(), 
 }
 
 pub fn feature_flags_read_supported(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let flags = phoenix::commands::feature_flags_read_supported(port)?;
+    let flags = phoenix::commands::feature_flags::read_supported(port)?;
     println!("Supported flags: [{}]", flags);
     Ok(())
 }

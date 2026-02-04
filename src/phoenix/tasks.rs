@@ -221,6 +221,6 @@ pub fn feature_flags_read_enabled(
     if caps.flags.contains(CRACapabilityFlags::FeatureFlagCommands) {
         commands::sys::read_feature_flags(port)
     } else {
-        commands::feature_flags_read_enabled(port)
+        commands::feature_flags::read_enabled(port)
     }
 }
