@@ -3,6 +3,7 @@ pub mod feature_flags;
 pub mod lock_key;
 pub mod storage;
 pub mod sys;
+pub mod time;
 pub mod tools;
 
 use std::error::Error;

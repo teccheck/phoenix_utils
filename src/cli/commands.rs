@@ -124,3 +124,20 @@ pub fn key_press(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), Bo
 pub fn key_release(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), Box<dyn Error>> {
     phoenix::commands::key_release(port, key as u8)
 }
+
+pub fn time_set(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let datetime = chrono::offset::Local::now().naive_utc();
+    phoenix::commands::time::set_utc(port, &datetime)?;
+    Ok(())
+}
+
+pub fn time_get(port: &mut Box<dyn SerialPort>, utc: bool) -> Result<(), Box<dyn Error>> {
+    let datetime = if utc {
+        phoenix::commands::time::get_utc(port)
+    } else {
+        phoenix::commands::time::get_local(port)
+    }?;
+
+    println!("Time on device is {datetime}");
+    Ok(())
+}

@@ -9,9 +9,9 @@ use clap_num::maybe_hex;
 use crate::{
     cli::{
         commands::{
-            backlight_mode, feature_flags_read_enabled, feature_flags_read_supported, key_press,
-            key_release, led_mode, cra_read_capabilities, print_device_info, print_storage_block,
-            print_storage_directory, feature_flags_write,
+            backlight_mode, cra_read_capabilities, feature_flags_read_enabled,
+            feature_flags_read_supported, feature_flags_write, key_press, key_release, led_mode,
+            print_device_info, print_storage_block, print_storage_directory, time_get, time_set,
         },
         types::{BacklightMode, LedMode, PagerKey},
     },
@@ -125,6 +125,13 @@ pub enum Commands {
         key: PagerKey,
     },
 
+    TimeSet,
+
+    TimeGet {
+        #[arg(short, long, default_value_t = false, help = "Get time as UTC")]
+        utc: bool,
+    },
+
     /// Try out an arbitrary command code with optional data.
     /// Might have unforeseen consequences. Use carefully!
     Debug {
@@ -216,6 +223,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
             Commands::KeyPress { key } => key_press(&mut port, key),
             Commands::KeyRelease { key } => key_release(&mut port, key),
+            Commands::TimeSet => time_set(&mut port),
+            Commands::TimeGet { utc } => time_get(&mut port, utc),
         };
 
         match result {
