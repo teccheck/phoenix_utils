@@ -87,14 +87,13 @@ pub enum CommandType {
     StorageExtNvmWriteAlt = 0x14C1,
     ExtendedLogRead = 0x1900,
     KnobTurn = 0x1A00,
-    Tools3Unknown3000 = 0x3000,
-    Tools3ClearCryptoKeys = 0x3001,
-    Tools3WritePwmValue = 0x3004,
-    // These two are for Crypto and OAP keys. Not sure which one is which
-    Tools3ReadCryptoKeyCount06 = 0x3006,
-    Tools3ReadCryptoKeyCount07 = 0x3007,
-    // Not sure what this is or how it works
-    Tools3Unknown3008 = 0x3008,
+    // One of these unknown ones has to be write key
+    CryptoUnknown3000 = 0x3000,
+    CryptoClearKeys = 0x3001,
+    CryptoWritePwmValue = 0x3004,
+    CryptoReadKeyCount = 0x3006,
+    CryptoReadKeyCountOAP = 0x3007,
+    CryptoUnknown3008 = 0x3008,
     MessagesReadCount = 0x3100,
     MessagesRead01 = 0x3101, // Read in Monitor???
     MessagesClearPool = 0x3110,

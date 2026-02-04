@@ -4,10 +4,11 @@ use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::send_command,
+    commands::{send_command, validate_command_response_type},
     swion_result::{SwionError, SwionResult},
     types::{
-        CommandType, PartialStorageBlock, StorageBlockId, StorageBlockInfo, StorageBlockPermissions,
+        CommandType, PartialStorageBlock, StorageBlockId, StorageBlockInfo, StorageBlockLength,
+        StorageBlockPermissions, StorageBlockVersion,
     },
 };
 
@@ -74,4 +75,38 @@ pub fn read_block_part(
     };
 
     Ok(block)
+}
+
+pub fn ext_nvm_read_read_dir(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::StorageExtNvmReadDir, &[])?;
+    validate_command_response_type(&rsp, CommandType::StorageExtNvmReadDir)?;
+
+    let mut blocks = Vec::new();
+
+    let data = &rsp[3..];
+    for i in (0..data.len()).step_by(7) {
+        let block_data = &data[i..];
+        if block_data.len() < 7 {
+            break;
+        }
+
+        let id: StorageBlockId = BigEndian::read_u16(&block_data[0..]);
+        let length: StorageBlockLength = BigEndian::read_u16(&block_data[2..]);
+        let version: StorageBlockVersion = block_data[4];
+        let permissions = StorageBlockPermissions::from(block_data[5]);
+        let following_blocks = block_data[6] as u16 + 1;
+
+        for block_id_offset in 0..following_blocks {
+            blocks.push(StorageBlockInfo {
+                id: id + block_id_offset,
+                length,
+                version,
+                permissions,
+            });
+        }
+    }
+
+    Ok(blocks)
 }

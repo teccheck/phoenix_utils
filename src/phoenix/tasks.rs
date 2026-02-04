@@ -86,6 +86,10 @@ pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
 pub fn read_storage_directory(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
+    if check_has_cra_capabilities(port, CRACapabilityFlags::ExtendedNVMCommands)? {
+        return commands::storage::ext_nvm_read_read_dir(port);
+    }
+
     let size = commands::storage::read_dir_size(port)?;
     let mut blocks = vec![];
     println!("Storage dir has size {size}");
@@ -217,10 +221,17 @@ pub fn set_password(
 pub fn feature_flags_read_enabled(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<FeatureFlag, Box<dyn Error>> {
-    let caps = commands::lock_key::cra_capability_read(port)?;
-    if caps.flags.contains(CRACapabilityFlags::FeatureFlagCommands) {
+    if check_has_cra_capabilities(port, CRACapabilityFlags::FeatureFlagCommands)? {
         commands::sys::read_feature_flags(port)
     } else {
         commands::feature_flags::read_enabled(port)
     }
+}
+
+pub fn check_has_cra_capabilities(
+    port: &mut Box<dyn SerialPort>,
+    capabilites: CRACapabilityFlags,
+) -> Result<bool, Box<dyn Error>> {
+    let caps = commands::lock_key::cra_capability_read(port)?;
+    Ok(caps.flags.contains(capabilites))
 }

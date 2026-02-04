@@ -1,5 +1,7 @@
 use std::io::Error;
 
+use serialport::SerialPort;
+
 const CRC8: crc::Crc<u8> = crc::Crc::<u8>::new(&crc::Algorithm {
     width: 8,
     poly: 0x31,
@@ -88,4 +90,19 @@ pub fn decode_frame(data: &[u8]) -> Result<Vec<u8>, Error> {
     }
 
     Ok(unstuffed_data[..&unstuffed_data.len() - 1].to_vec())
+}
+
+pub fn read_until_end(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Error> {
+    let mut data = Vec::new();
+    let mut buffer = [0_u8; 64];
+
+    loop {
+        let size = port.read(&mut buffer)?;
+        data.extend_from_slice(&buffer[0..size]);
+        if buffer[size - 1] == FRAME_MARKER {
+            break;
+        }
+    }
+
+    Ok(data)
 }

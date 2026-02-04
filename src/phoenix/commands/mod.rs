@@ -10,10 +10,10 @@ use std::error::Error;
 
 use serialport::SerialPort;
 
-use crate::{
-    phoenix::sci_frame_protocol::{decode_frame, encode_frame},
-    phoenix::swion_result::{SwionError, SwionResult},
-    phoenix::types::{CommandType, InvalidResponseTypeError},
+use crate::phoenix::{
+    sci_frame_protocol::{decode_frame, encode_frame, read_until_end},
+    swion_result::{SwionError, SwionResult},
+    types::{CommandType, InvalidResponseTypeError},
 };
 
 fn send_command(
@@ -38,9 +38,8 @@ fn send_command_raw(
     let frame = encode_frame(&msg);
     port.write_all(&frame)?;
 
-    let mut read_buf: [u8; 64] = [0; 64];
-    let size = port.read(&mut read_buf)?;
-    let rsp = decode_frame(&read_buf[..size])?;
+    let frame = read_until_end(port)?;
+    let rsp = decode_frame(&frame)?;
 
     Ok(rsp)
 }
