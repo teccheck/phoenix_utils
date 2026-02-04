@@ -42,7 +42,7 @@ struct CmdArgs {
     #[arg(short, long, help = "Programming password")]
     auth: Option<String>,
 
-    #[arg(long, help = "SHA1 hased programming password")]
+    #[arg(long, help = "SHA1 hased programming password as hex string without spaces")]
     auth_hash: Option<String>,
 
     #[command(subcommand)]
@@ -137,7 +137,7 @@ pub enum Commands {
         #[arg(value_parser=maybe_hex::<u16>)]
         command_type: u16,
 
-        #[arg(short, long, help = "Args data")]
+        #[arg(short, long, help = "Args data as hex string without spaces (Example: E100)")]
         data: Option<String>,
     },
 }

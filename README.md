@@ -4,6 +4,10 @@ This is a little project to interface with the DE10A pager hardware by [Swisspho
 
 This is in very early stages of development. Docs don't exist, and the code quality is lacking. There are also a lot of missing features. However, I appreciate stars and especially help. In any case, I hope you like it.
 
+## Project structure
+
+You'll find two main modules in here: phoenix and cli. Cli, as the name implies contains all functionality related to input and output from and to the user. Phoenix is much more interesting, as it contains all business logic and communication protocols. The name is used by Swion for their library as well, and I like it. Here you'll find submodules for commands, tasks (more complex stuff using multiple commands), protocols, types, and a string encoding. I'd say, the code is fairly understandable even if you're not used to Rust.
+
 ## TODO
 
 - [x] Dynamic buffer size in SCI Frame protocol and raw
