@@ -86,13 +86,13 @@ pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
 pub fn read_storage_directory(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
-    let size = commands::storage_read_dir_size(port)?;
+    let size = commands::storage::read_dir_size(port)?;
     let mut blocks = vec![];
     println!("Storage dir has size {size}");
 
     for i in 0..size {
         print!("\rREAD DIR: {i} / {size}");
-        let block = commands::storage_read_block_info(port, i)?;
+        let block = commands::storage::read_block_info(port, i)?;
         blocks.push(block);
     }
 
@@ -125,7 +125,7 @@ pub fn read_storage_block(
             break;
         }
 
-        let block = commands::storage_read_block_part(port, id, offset, len)?;
+        let block = commands::storage::read_block_part(port, id, offset, len)?;
         data.extend_from_slice(&block.data);
         index += 1;
     }
