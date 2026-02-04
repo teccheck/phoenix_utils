@@ -9,9 +9,7 @@ use clap_num::maybe_hex;
 use crate::{
     cli::{
         commands::{
-            backlight_mode, cra_read_capabilities, feature_flags_read_enabled,
-            feature_flags_read_supported, feature_flags_write, key_press, key_release, led_mode,
-            print_device_info, print_storage_block, print_storage_directory, time_get, time_set,
+            backlight_mode, cra_read_capabilities, feature_flags_read_enabled, feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write, key_press, key_release, led_mode, print_device_info, print_storage_block, print_storage_directory, time_get, time_set
         },
         types::{BacklightMode, LedMode, PagerKey},
     },
@@ -87,6 +85,9 @@ pub enum Commands {
 
     /// Write feature flags to the device (replaces the previous value)
     FeatureFlagsWrite { flags: Vec<String> },
+
+    /// Reads some random value. Not sure what that's for.
+    FeatureFlagsReadUniqueId,
 
     /// Read all command families this device supports
     CRAReadCapabilities,
@@ -215,6 +216,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::FeatureFlagsReadEnabled => feature_flags_read_enabled(&mut port),
             Commands::FeatureFlagsReadSupported => feature_flags_read_supported(&mut port),
             Commands::FeatureFlagsWrite { flags } => feature_flags_write(&mut port, flags),
+            Commands::FeatureFlagsReadUniqueId => feature_flags_read_unique_id(&mut port),
             Commands::CRAReadCapabilities => cra_read_capabilities(&mut port),
             Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
             Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),

@@ -78,6 +78,12 @@ pub fn feature_flags_write(
     phoenix::commands::sys::write_feature_flags(port, new_flags)
 }
 
+pub fn feature_flags_read_unique_id(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let id = phoenix::commands::feature_flags::read_unique_id(port)?;
+    println!("Unique ID: {:X?}", id);
+    Ok(())
+}
+
 fn parse_flags_vec(flags: Vec<String>) -> Result<FeatureFlag, Box<dyn Error>> {
     let new_flags: Result<Vec<FeatureFlag>, FeatureFlagNotFoundError> =
         flags.iter().map(find_feature_flag_by_string).collect();
