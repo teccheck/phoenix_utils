@@ -4,44 +4,45 @@ use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::send_command,
-    swion_result::{SwionError, SwionResult},
+    commands::{check_response_result_default, check_response_type, send_command},
+    swion_result::SwionResult,
     types::{AuthError, CRACapabilities, CRACapabilityFlags, CommandType},
 };
+
+fn check_auth_error(resp: &[u8]) -> Result<(), AuthError> {
+    let result = SwionResult::parse_auth(resp[0]);
+    if result.is_error() {
+        return Err(AuthError {
+            result,
+            remaining_attempts: resp[1],
+            locked_until_day: resp[2],
+            locked_until_month: resp[3],
+            locked_until_year: BigEndian::read_u16(&resp[4..]),
+            enhanced_protection: resp[6],
+        });
+    }
+
+    Ok(())
+}
 
 pub fn cra_capability_read(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<CRACapabilities, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
-
-    let swion_result = SwionResult::parse_default(rsp[3]);
-    if swion_result.is_error() {
-        return Err(SwionError::new("command_cra_cap_read".to_string(), swion_result).into());
-    }
+    let rsp = check_response_type(&rsp, CommandType::CRACapabilityRead)?;
+    let rsp = check_response_result_default(&rsp, "cra_capability_read")?;
 
     Ok(CRACapabilities {
-        flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[4..])),
-        payload_request: BigEndian::read_u16(&rsp[6..]),
-        payload_response: BigEndian::read_u16(&rsp[8..]),
+        flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[0..])),
+        payload_request: BigEndian::read_u16(&rsp[2..]),
+        payload_response: BigEndian::read_u16(&rsp[4..]),
     })
 }
 
 pub fn read_and_auth(port: &mut Box<dyn SerialPort>, key: &[u8]) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
-
-    let swion_result = SwionResult::parse_auth(rsp[3]);
-    if swion_result.is_error() {
-        return Err(AuthError {
-            result: swion_result,
-            remaining_attempts: rsp[4],
-            locked_until_day: rsp[5],
-            locked_until_month: rsp[6],
-            locked_until_year: BigEndian::read_u16(&rsp[7..]),
-            enhanced_protection: rsp[9],
-        }
-        .into());
-    }
-
+    let rsp = check_response_type(&rsp, CommandType::LockKeyReadAndAuth)?;
+    check_auth_error(&rsp)?;
     Ok(())
 }
 
@@ -60,19 +61,7 @@ pub fn cra_lock_key_write(
     args.extend([ep]);
 
     let rsp = send_command(port, CommandType::CRALockKeyWrite, &args)?;
-
-    let swion_result = SwionResult::parse_auth(rsp[3]);
-    if swion_result.is_error() {
-        return Err(AuthError {
-            result: swion_result,
-            remaining_attempts: rsp[4],
-            locked_until_day: rsp[5],
-            locked_until_month: rsp[6],
-            locked_until_year: BigEndian::read_u16(&rsp[7..]),
-            enhanced_protection: rsp[9],
-        }
-        .into());
-    }
-
+    let rsp = check_response_type(&rsp, CommandType::CRALockKeyWrite)?;
+    check_auth_error(&rsp)?;
     Ok(())
 }
