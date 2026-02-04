@@ -4,7 +4,7 @@ use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::{send_command, validate_command_response_type},
+    commands::{send_command, validate_command_response_result_default, validate_command_response_type},
     swion_result::{SwionError, SwionResult},
     types::{
         CommandType, PartialStorageBlock, StorageBlockId, StorageBlockInfo, StorageBlockLength,
@@ -31,18 +31,20 @@ pub fn read_block_info(
     let mut data = [2, 0_u8];
     BigEndian::write_u16(&mut data, index);
     let rsp = send_command(port, CommandType::StorageReadBlockInfo, &data)?;
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadBlockInfo)?;
 
     Ok(StorageBlockInfo {
-        id: BigEndian::read_u16(&rsp[3..5]),
-        length: BigEndian::read_u16(&rsp[5..7]),
-        version: rsp[7],
-        permissions: StorageBlockPermissions::from(rsp[8]),
+        id: BigEndian::read_u16(&rsp[0..]),
+        length: BigEndian::read_u16(&rsp[2..]),
+        version: rsp[4],
+        permissions: StorageBlockPermissions::from(rsp[5]),
     })
 }
 
 pub fn read_dir_size(port: &mut Box<dyn SerialPort>) -> Result<u16, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadDirSize, &[])?;
-    Ok(BigEndian::read_u16(&rsp[3..5]))
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadDirSize)?;
+    Ok(BigEndian::read_u16(&rsp))
 }
 
 pub fn read_block_part(
@@ -57,8 +59,9 @@ pub fn read_block_part(
     BigEndian::write_u16(&mut data[4..6], length);
 
     let rsp = send_command(port, CommandType::StorageReadBlockPart, &data)?;
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadBlockPart)?;
 
-    let swion_result = SwionResult::parse_default(rsp[9]);
+    let swion_result = SwionResult::parse_default(rsp[6]);
     if swion_result.is_error() {
         return Err(SwionError::new(
             "command_read_storage_block_partial".to_string(),
@@ -68,26 +71,26 @@ pub fn read_block_part(
     }
 
     let block = PartialStorageBlock {
-        id: BigEndian::read_u16(&rsp[3..]),
-        offset: BigEndian::read_u16(&rsp[5..]),
-        length: BigEndian::read_u16(&rsp[7..]),
-        data: Vec::from(&rsp[10..]),
+        id: BigEndian::read_u16(&rsp[0..]),
+        offset: BigEndian::read_u16(&rsp[2..]),
+        length: BigEndian::read_u16(&rsp[4..]),
+        data: Vec::from(&rsp[7..]),
     };
 
     Ok(block)
 }
 
+// TODO: Checksum for ext commands
 pub fn ext_nvm_read_read_dir(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageExtNvmReadDir, &[])?;
-    validate_command_response_type(&rsp, CommandType::StorageExtNvmReadDir)?;
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageExtNvmReadDir)?;
 
     let mut blocks = Vec::new();
 
-    let data = &rsp[3..];
-    for i in (0..data.len()).step_by(7) {
-        let block_data = &data[i..];
+    for i in (0..(&rsp).len()).step_by(7) {
+        let block_data = &(&rsp)[i..];
         if block_data.len() < 7 {
             break;
         }

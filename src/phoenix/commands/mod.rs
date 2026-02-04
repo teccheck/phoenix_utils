@@ -66,7 +66,7 @@ pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[
 pub fn validate_command_response_type(
     resp: &[u8],
     type_required: CommandType,
-) -> Result<(), InvalidResponseTypeError> {
+) -> Result<&[u8], InvalidResponseTypeError> {
     let type_actual = ((resp[0] as u16) << 8) + (resp[2] as u16);
     let type_required = type_required as u16;
 
@@ -74,32 +74,33 @@ pub fn validate_command_response_type(
         return Err(InvalidResponseTypeError::new(type_required, type_actual));
     }
 
-    Ok(())
+    Ok(&resp[3..])
 }
 
-pub fn validate_command_response_result_default(
-    resp: &[u8],
+pub fn validate_command_response_result_default<'a>(
+    resp: &'a [u8],
     operation_name: &str,
-) -> Result<(), SwionError> {
-    validate_command_response_result(SwionResult::parse_default(resp[3]), operation_name)
+) -> Result<&'a [u8], SwionError> {
+    validate_command_response_result(resp, SwionResult::parse_default(resp[0]), operation_name)
 }
 
-pub fn validate_command_response_result_var1(
-    resp: &[u8],
+pub fn validate_command_response_result_var1<'a>(
+    resp: &'a [u8],
     operation_name: &str,
-) -> Result<(), SwionError> {
-    validate_command_response_result(SwionResult::parse_var1(resp[3]), operation_name)
+) -> Result<&'a [u8], SwionError> {
+    validate_command_response_result(resp, SwionResult::parse_var1(resp[0]), operation_name)
 }
 
-pub fn validate_command_response_result(
+pub fn validate_command_response_result<'a>(
+    resp: &'a [u8],
     result: SwionResult,
     operation_name: &str,
-) -> Result<(), SwionError> {
+) -> Result<&'a [u8], SwionError> {
     if result.is_error() {
         return Err(SwionError::new(operation_name.to_string(), result));
     }
 
-    Ok(())
+    Ok(&resp[1..])
 }
 
 pub fn key_press(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {

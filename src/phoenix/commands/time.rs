@@ -4,28 +4,35 @@ use byteorder::{BigEndian, ByteOrder};
 use chrono::{Datelike, NaiveDate, NaiveDateTime, NaiveTime, Timelike};
 use serialport::SerialPort;
 
-use crate::phoenix::{commands::{send_command, validate_command_response_result_default, validate_command_response_result_var1, validate_command_response_type}, types::CommandType};
+use crate::phoenix::{
+    commands::{
+        send_command, validate_command_response_result_var1, validate_command_response_type,
+    },
+    types::CommandType,
+};
 
-pub fn set_utc(port: &mut Box<dyn SerialPort>, datetime: &NaiveDateTime) -> Result<(), Box<dyn Error>> {
+pub fn set_utc(
+    port: &mut Box<dyn SerialPort>,
+    datetime: &NaiveDateTime,
+) -> Result<(), Box<dyn Error>> {
     let mut args = [0_u8; 7];
     write_time(&mut args, datetime);
     let rsp = send_command(port, CommandType::TimeSet, &args)?;
-    validate_command_response_type(&rsp, CommandType::TimeSet)?;
+    let rsp = validate_command_response_type(&rsp, CommandType::TimeSet)?;
     validate_command_response_result_var1(&rsp, "time_set_utc")?;
     Ok(())
 }
 
 pub fn get_utc(port: &mut Box<dyn SerialPort>) -> Result<NaiveDateTime, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::TimeGetUtc, &[])?;
-    validate_command_response_type(&rsp, CommandType::TimeGetUtc)?;
-    println!("{:X?}", rsp);
-    Ok(read_time(&rsp[3..]))
+    let rsp = validate_command_response_type(&rsp, CommandType::TimeGetUtc)?;
+    Ok(read_time(&rsp))
 }
 
 pub fn get_local(port: &mut Box<dyn SerialPort>) -> Result<NaiveDateTime, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::TimeGetLocal, &[])?;
-    validate_command_response_type(&rsp, CommandType::TimeGetLocal)?;
-    Ok(read_time(&rsp[3..]))
+    let rsp = validate_command_response_type(&rsp, CommandType::TimeGetLocal)?;
+    Ok(read_time(&rsp))
 }
 
 fn read_time(data: &[u8]) -> NaiveDateTime {
@@ -37,7 +44,9 @@ fn read_time(data: &[u8]) -> NaiveDateTime {
     let sec = data[2];
 
     let time = NaiveTime::from_hms_opt(hour.into(), min.into(), sec.into()).unwrap();
-    NaiveDate::from_ymd_opt(year.into(), month.into(), day.into()).unwrap().and_time(time)
+    NaiveDate::from_ymd_opt(year.into(), month.into(), day.into())
+        .unwrap()
+        .and_time(time)
 }
 
 fn write_time(data: &mut [u8], datetime: &NaiveDateTime) {
