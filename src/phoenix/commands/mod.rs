@@ -1,3 +1,4 @@
+pub mod device_reset;
 pub mod storage;
 pub mod sys;
 pub mod tools;
@@ -102,24 +103,6 @@ pub fn validate_command_response_result<'a>(
         return Err(SwionError::new(operation_name.to_string(), result));
     }
 
-    Ok(())
-}
-
-pub fn device_reset_reboot(
-    port: &mut Box<dyn SerialPort>,
-    reset_type: ResetType,
-) -> Result<(), Box<dyn Error>> {
-    let _ = send_command(port, CommandType::DeviceResetReboot, &[reset_type as u8])?;
-    Ok(())
-}
-
-pub fn device_reset_shutdown(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let _ = send_command(port, CommandType::DeviceResetShutdown, &[])?;
-    Ok(())
-}
-
-pub fn device_reset_startup(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let _ = send_command(port, CommandType::DeviceResetStartup, &[])?;
     Ok(())
 }
 
