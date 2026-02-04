@@ -5,9 +5,51 @@ use serialport::SerialPort;
 use crate::{
     cli::types::{BacklightMode, LedMode, PagerKey},
     phoenix::{
-        self, types::{FeatureFlag, FeatureFlagNotFoundError},
+        self, types::{FeatureFlag, FeatureFlagNotFoundError, StorageBlockId, StorageBlockLength, StorageBlockOffset},
     },
 };
+
+pub fn print_device_info(port: &mut Box<dyn SerialPort>) {
+    match phoenix::tasks::read_device_info(port) {
+        Ok(info) => println!("{}", info),
+        Err(e) => println!("Error reading device info: {}", e),
+    }
+}
+
+pub fn print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    println!("Reading Storage directory. This might take a few seconds...");
+    let dir = phoenix::tasks::read_storage_directory(port)?;
+
+    println!("| ID   | Version | Size   | Flags |");
+    for block in dir {
+        println!(
+            "| {:>4x} | {:>7} | {:>6} | {:>5} |",
+            block.id,
+            block.version,
+            block.length,
+            block.permissions.flag_string()
+        );
+    }
+
+    Ok(())
+}
+
+pub fn print_storage_block(
+    port: &mut Box<dyn SerialPort>,
+    id: StorageBlockId,
+    offset: StorageBlockOffset,
+    length: StorageBlockLength,
+) -> Result<(), Box<dyn Error>> {
+    let data = phoenix::tasks::read_storage_block(port, id, offset, length)?;
+    println!("Storage Block ({:X}): {:X?}", id, data);
+    Ok(())
+}
+
+pub fn cra_read_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
+    let capabilities = phoenix::commands::cra_capability_read(port)?;
+    println!("Capabilities:\n{}", capabilities);
+    Ok(())
+}
 
 pub fn feature_flags_read_enabled(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let flags = phoenix::tasks::feature_flags_read_enabled(port)?;

@@ -10,7 +10,8 @@ use crate::{
     cli::{
         commands::{
             backlight_mode, feature_flags_read_enabled, feature_flags_read_supported, key_press,
-            key_release, led_mode, write_feature_flags,
+            key_release, led_mode, cra_read_capabilities, print_device_info, print_storage_block,
+            print_storage_directory, write_feature_flags,
         },
         types::{BacklightMode, LedMode, PagerKey},
     },
@@ -174,7 +175,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("Device Type: {:?}", device_type);
 
     if args.info {
-        phoenix::tasks::print_device_info(&mut port);
+        print_device_info(&mut port);
     }
 
     match phoenix::tasks::try_authenticate(&mut port, args.auth, args.auth_hash) {
@@ -194,15 +195,15 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
             Commands::Shutdown => phoenix::commands::device_reset_shutdown(&mut port),
             Commands::Bootup => phoenix::commands::device_reset_startup(&mut port),
-            Commands::PrintStorageDir => phoenix::tasks::print_storage_directory(&mut port),
+            Commands::PrintStorageDir => print_storage_directory(&mut port),
             Commands::DumpStorage => phoenix::tasks::dump_storage(&mut port),
             Commands::ReadStorageBlock { id, offset, length } => {
-                phoenix::tasks::print_storage_block(&mut port, id, offset, length)
+                print_storage_block(&mut port, id, offset, length)
             }
             Commands::FeatureFlagsReadEnabled => feature_flags_read_enabled(&mut port),
             Commands::FeatureFlagsReadSupported => feature_flags_read_supported(&mut port),
             Commands::WriteFeatureFlags { flags } => write_feature_flags(&mut port, flags),
-            Commands::CRAReadCapabilities => phoenix::tasks::print_cra_capabilities(&mut port),
+            Commands::CRAReadCapabilities => cra_read_capabilities(&mut port),
             Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
             Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),
             Commands::Debug { command_type, data } => {

@@ -83,24 +83,6 @@ pub fn dump_storage_block_to_file(block: &StorageBlockInfo, data: &[u8]) {
     }
 }
 
-pub fn print_storage_directory(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    println!("Reading Storage directory. This might take a few seconds...");
-    let dir = read_storage_directory(port)?;
-
-    println!("| ID   | Version | Size   | Flags |");
-    for block in dir {
-        println!(
-            "| {:>4x} | {:>7} | {:>6} | {:>5} |",
-            block.id,
-            block.version,
-            block.length,
-            block.permissions.flag_string()
-        );
-    }
-
-    Ok(())
-}
-
 pub fn read_storage_directory(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
@@ -115,17 +97,6 @@ pub fn read_storage_directory(
     }
 
     Ok(blocks)
-}
-
-pub fn print_storage_block(
-    port: &mut Box<dyn SerialPort>,
-    id: StorageBlockId,
-    offset: StorageBlockOffset,
-    length: StorageBlockLength,
-) -> Result<(), Box<dyn Error>> {
-    let data = read_storage_block(port, id, offset, length)?;
-    println!("Storage Block ({:X}): {:X?}", id, data);
-    Ok(())
 }
 
 pub fn read_storage_block(
@@ -162,13 +133,6 @@ pub fn read_storage_block(
     Ok(data)
 }
 
-pub fn print_device_info(port: &mut Box<dyn SerialPort>) {
-    match read_device_info(port) {
-        Ok(info) => println!("{}", info),
-        Err(e) => println!("Error reading device info: {}", e),
-    }
-}
-
 pub fn read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
     let serial_number = commands::sys_read_serial_number(port)?;
     let firmware_version = commands::sys_read_firmware_version(port)?;
@@ -181,12 +145,6 @@ pub fn read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Bo
         firmware_build_id,
         feature_flags,
     })
-}
-
-pub fn print_cra_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let capabilities = commands::cra_capability_read(port)?;
-    println!("Capabilities:\n{}", capabilities);
-    Ok(())
 }
 
 pub fn try_authenticate(
