@@ -113,3 +113,20 @@ pub fn ext_nvm_read_read_dir(
 
     Ok(blocks)
 }
+
+pub fn read_status(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<Option<u16>, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::StorageReadStatus, &[])?;
+
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadStatus)?;
+    let rsp = validate_command_response_result_default(&rsp, "storage_read_status")?;
+
+    // What does that mean? Is this status only present if result is error?
+    if rsp.len() >= 2 {
+        let status = BigEndian::read_u16(&rsp);
+        return Ok(Some(status));
+    }
+
+    Ok(None)
+}
