@@ -1,11 +1,16 @@
 use std::error::Error;
 
+use chrono::NaiveDateTime;
 use serialport::SerialPort;
 
 use crate::{
     cli::types::{BacklightMode, LedMode, PagerKey},
     phoenix::{
-        self, types::{FeatureFlag, FeatureFlagNotFoundError, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+        self,
+        types::{
+            FeatureFlag, FeatureFlagNotFoundError, StorageBlockId, StorageBlockLength,
+            StorageBlockOffset,
+        },
     },
 };
 
@@ -125,8 +130,16 @@ pub fn key_release(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), 
     phoenix::commands::key_release(port, key as u8)
 }
 
-pub fn time_set(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let datetime = chrono::offset::Local::now().naive_utc();
+pub fn time_set(
+    port: &mut Box<dyn SerialPort>,
+    time: Option<String>,
+) -> Result<(), Box<dyn Error>> {
+    let datetime = if let Some(time) = time {
+        NaiveDateTime::parse_from_str(&time, "%Y-%m-%dT%H:%M:%S")?
+    } else {
+        chrono::offset::Local::now().naive_utc()
+    };
+
     phoenix::commands::time::set_utc(port, &datetime)?;
     Ok(())
 }

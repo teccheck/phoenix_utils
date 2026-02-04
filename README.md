@@ -10,7 +10,7 @@ This is in very early stages of development. Docs don't exist, and the code qual
 - [ ] Error handling in commands via SwionResult and SwionError
 - [ ] Move utilities into utils crate or similar
 - [ ] Move CommandType into its own crate?
-- [ ] Implement time set/get commands
+- [x] Implement time set/get commands
 - [x] Implement backlight and led test mode commands
 - [ ] Implement message log commands
 - [ ] Hierarchic CLI commands

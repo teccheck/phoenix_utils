@@ -86,9 +86,7 @@ pub enum Commands {
     FeatureFlagsReadSupported,
 
     /// Write feature flags to the device (replaces the previous value)
-    FeatureFlagsWrite {
-        flags: Vec<String>,
-    },
+    FeatureFlagsWrite { flags: Vec<String> },
 
     /// Read all command families this device supports
     CRAReadCapabilities,
@@ -97,9 +95,7 @@ pub enum Commands {
     ResetPassword,
 
     /// Set a new programming password (only on firmware < 4)
-    SetPassword {
-        password: String,
-    },
+    SetPassword { password: String },
 
     /// Control the alarm LED (if there is one)
     Led {
@@ -125,7 +121,10 @@ pub enum Commands {
         key: PagerKey,
     },
 
-    TimeSet,
+    TimeSet {
+        #[arg(help = "Set a custom UTC time. Format: 2012-01-30T15:30:59")]
+        time: Option<String>,
+    },
 
     TimeGet {
         #[arg(short, long, default_value_t = false, help = "Get time as UTC")]
@@ -223,7 +222,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
             Commands::KeyPress { key } => key_press(&mut port, key),
             Commands::KeyRelease { key } => key_release(&mut port, key),
-            Commands::TimeSet => time_set(&mut port),
+            Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
         };
 
