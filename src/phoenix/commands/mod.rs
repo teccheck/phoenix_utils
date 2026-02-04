@@ -7,18 +7,12 @@ pub mod tools;
 
 use std::error::Error;
 
-use byteorder::{BigEndian, ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
 use crate::{
-    phoenix::encoding::decode_string,
     phoenix::sci_frame_protocol::{decode_frame, encode_frame},
     phoenix::swion_result::{SwionError, SwionResult},
-    phoenix::types::{
-        AuthError, CRACapabilities, CRACapabilityFlags, CommandType, FeatureFlag,
-        InvalidResponseTypeError, PartialStorageBlock, ResetType, StorageBlockId, StorageBlockInfo,
-        StorageBlockPermissions,
-    },
+    phoenix::types::{CommandType, InvalidResponseTypeError},
 };
 
 fn send_command(
@@ -122,10 +116,7 @@ pub fn key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dy
     Ok(())
 }
 
-pub fn display_test_mode(
-    port: &mut Box<dyn SerialPort>,
-    mode: u8,
-) -> Result<(), Box<dyn Error>> {
+pub fn display_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) -> Result<(), Box<dyn Error>> {
     let args = [mode];
     let rsp = send_command(port, CommandType::DisplayTestMode, &args)?;
     validate_command_response_type(&rsp, CommandType::DisplayTestMode)?;
