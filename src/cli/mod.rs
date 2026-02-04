@@ -11,7 +11,7 @@ use crate::{
         commands::{
             backlight_mode, feature_flags_read_enabled, feature_flags_read_supported, key_press,
             key_release, led_mode, cra_read_capabilities, print_device_info, print_storage_block,
-            print_storage_directory, write_feature_flags,
+            print_storage_directory, feature_flags_write,
         },
         types::{BacklightMode, LedMode, PagerKey},
     },
@@ -79,11 +79,14 @@ pub enum Commands {
         length: StorageBlockLength,
     },
 
+    /// Get all currently enabled features
     FeatureFlagsReadEnabled,
+
+    /// Get all features that can be enabled
     FeatureFlagsReadSupported,
 
     /// Write feature flags to the device (replaces the previous value)
-    WriteFeatureFlags {
+    FeatureFlagsWrite {
         flags: Vec<String>,
     },
 
@@ -202,7 +205,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
             Commands::FeatureFlagsReadEnabled => feature_flags_read_enabled(&mut port),
             Commands::FeatureFlagsReadSupported => feature_flags_read_supported(&mut port),
-            Commands::WriteFeatureFlags { flags } => write_feature_flags(&mut port, flags),
+            Commands::FeatureFlagsWrite { flags } => feature_flags_write(&mut port, flags),
             Commands::CRAReadCapabilities => cra_read_capabilities(&mut port),
             Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
             Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),

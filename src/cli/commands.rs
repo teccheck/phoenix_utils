@@ -63,7 +63,7 @@ pub fn feature_flags_read_supported(port: &mut Box<dyn SerialPort>) -> Result<()
     Ok(())
 }
 
-pub fn write_feature_flags(
+pub fn feature_flags_write(
     port: &mut Box<dyn SerialPort>,
     flags: Vec<String>,
 ) -> Result<(), Box<dyn Error>> {
