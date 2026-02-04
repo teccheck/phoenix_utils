@@ -91,7 +91,7 @@ pub fn validate_command_response_result_var1(
     validate_command_response_result(SwionResult::parse_var1(resp[3]), operation_name)
 }
 
-pub fn validate_command_response_result<'a>(
+pub fn validate_command_response_result(
     result: SwionResult,
     operation_name: &str,
 ) -> Result<(), SwionError> {
