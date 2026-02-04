@@ -134,10 +134,10 @@ pub fn read_storage_block(
 }
 
 pub fn read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
-    let serial_number = commands::sys_read_serial_number(port)?;
-    let firmware_version = commands::sys_read_firmware_version(port)?;
-    let firmware_build_id = commands::sys_read_firmware_build_id(port)?;
-    let feature_flags = commands::sys_read_feature_flags(port)?;
+    let serial_number = commands::sys::read_serial_number(port)?;
+    let firmware_version = commands::sys::read_firmware_version(port)?;
+    let firmware_build_id = commands::sys::read_firmware_build_id(port)?;
+    let feature_flags = commands::sys::read_feature_flags(port)?;
 
     Ok(DeviceInfo {
         serial_number,
@@ -219,7 +219,7 @@ pub fn feature_flags_read_enabled(
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let caps = commands::cra_capability_read(port)?;
     if caps.flags.contains(CRACapabilityFlags::FeatureFlagCommands) {
-        commands::sys_read_feature_flags(port)
+        commands::sys::read_feature_flags(port)
     } else {
         commands::feature_flags_read_enabled(port)
     }

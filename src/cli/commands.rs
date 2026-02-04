@@ -70,7 +70,7 @@ pub fn feature_flags_write(
     let new_flags = parse_flags_vec(flags)?;
     println!("Write Feature Flags: [{}]", new_flags);
 
-    phoenix::commands::sys_write_feature_flags(port, new_flags)
+    phoenix::commands::sys::write_feature_flags(port, new_flags)
 }
 
 fn parse_flags_vec(flags: Vec<String>) -> Result<FeatureFlag, Box<dyn Error>> {
