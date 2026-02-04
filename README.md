@@ -14,5 +14,5 @@ This is in very early stages of development. Docs don't exist, and the code qual
 - [x] Implement backlight and led test mode commands
 - [ ] Implement message log commands
 - [ ] Hierarchic CLI commands
-- [ ] Module hierarchy for phoenix commands
+- [x] Module hierarchy for phoenix commands
 - [ ] Look for more stuff to do
