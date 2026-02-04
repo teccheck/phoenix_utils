@@ -36,11 +36,50 @@ impl SwionResult {
         SwionResult::from_repr(result).unwrap_or(SwionResult::None)
     }
 
-    pub fn parse_var1(result: u8) -> SwionResult {
+    pub fn parse_simple_inv(result: u8) -> SwionResult {
+        match result {
+            1 => SwionResult::Success,
+            _ => SwionResult::Error,
+        }
+    }
+
+    pub fn parse_auth(result: u8) -> SwionResult {
         match result {
             1 => SwionResult::Success,
             2 | 4 | 5 => SwionResult::AuthentificationError,
             3 => SwionResult::Locked,
+            _ => SwionResult::Error,
+        }
+    }
+
+    // Class: ac6
+    pub fn parse_transaction(result: u8) -> SwionResult {
+        match result {
+            0 => SwionResult::Success,
+            6 => SwionResult::Busy,
+            7 => SwionResult::InvalidState,
+            8 => SwionResult::DataInvalid,
+            9 => SwionResult::ChecksumMismatch,
+            _ => SwionResult::Error,
+        }
+    }
+
+    // Class: abp
+    pub fn parse_audio1(result: u8) -> SwionResult {
+        match result {
+            0 => SwionResult::Success,
+            1 => SwionResult::DataInvalid,
+            3 => SwionResult::OutOfMemory,
+            4 => SwionResult::DataInvalid,
+            _ => SwionResult::Error,
+        }
+    }
+
+    // Class:abn
+    pub fn parse_audio2(result: u8) -> SwionResult {
+        match result {
+            0 => SwionResult::Success,
+            2 | 3 => SwionResult::DataInvalid,
             _ => SwionResult::Error,
         }
     }
@@ -66,9 +105,6 @@ impl Error for SwionError {}
 
 impl SwionError {
     pub fn new(operation: String, reason: SwionResult) -> SwionError {
-        SwionError {
-            operation,
-            reason,
-        }
+        SwionError { operation, reason }
     }
 }

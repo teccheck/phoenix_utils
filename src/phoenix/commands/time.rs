@@ -6,7 +6,7 @@ use serialport::SerialPort;
 
 use crate::phoenix::{
     commands::{
-        send_command, validate_command_response_result_var1, validate_command_response_type,
+        send_command, check_response_result_simple_inv, check_response_type,
     },
     types::CommandType,
 };
@@ -18,20 +18,20 @@ pub fn set_utc(
     let mut args = [0_u8; 7];
     write_time(&mut args, datetime);
     let rsp = send_command(port, CommandType::TimeSet, &args)?;
-    let rsp = validate_command_response_type(&rsp, CommandType::TimeSet)?;
-    validate_command_response_result_var1(&rsp, "time_set_utc")?;
+    let rsp = check_response_type(&rsp, CommandType::TimeSet)?;
+    check_response_result_simple_inv(&rsp, "time_set_utc")?;
     Ok(())
 }
 
 pub fn get_utc(port: &mut Box<dyn SerialPort>) -> Result<NaiveDateTime, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::TimeGetUtc, &[])?;
-    let rsp = validate_command_response_type(&rsp, CommandType::TimeGetUtc)?;
+    let rsp = check_response_type(&rsp, CommandType::TimeGetUtc)?;
     Ok(read_time(&rsp))
 }
 
 pub fn get_local(port: &mut Box<dyn SerialPort>) -> Result<NaiveDateTime, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::TimeGetLocal, &[])?;
-    let rsp = validate_command_response_type(&rsp, CommandType::TimeGetLocal)?;
+    let rsp = check_response_type(&rsp, CommandType::TimeGetLocal)?;
     Ok(read_time(&rsp))
 }
 

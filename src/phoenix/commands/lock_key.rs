@@ -3,7 +3,11 @@ use std::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
-use crate::phoenix::{commands::send_command, swion_result::{SwionError, SwionResult}, types::{AuthError, CRACapabilities, CRACapabilityFlags, CommandType}};
+use crate::phoenix::{
+    commands::send_command,
+    swion_result::{SwionError, SwionResult},
+    types::{AuthError, CRACapabilities, CRACapabilityFlags, CommandType},
+};
 
 pub fn cra_capability_read(
     port: &mut Box<dyn SerialPort>,
@@ -25,7 +29,7 @@ pub fn cra_capability_read(
 pub fn read_and_auth(port: &mut Box<dyn SerialPort>, key: &[u8]) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
 
-    let swion_result = SwionResult::parse_var1(rsp[3]);
+    let swion_result = SwionResult::parse_auth(rsp[3]);
     if swion_result.is_error() {
         return Err(AuthError {
             result: swion_result,
@@ -57,7 +61,7 @@ pub fn cra_lock_key_write(
 
     let rsp = send_command(port, CommandType::CRALockKeyWrite, &args)?;
 
-    let swion_result = SwionResult::parse_var1(rsp[3]);
+    let swion_result = SwionResult::parse_auth(rsp[3]);
     if swion_result.is_error() {
         return Err(AuthError {
             result: swion_result,

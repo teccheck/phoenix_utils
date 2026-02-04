@@ -63,7 +63,7 @@ pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[
     println!("Done");
 }
 
-pub fn validate_command_response_type(
+pub fn check_response_type(
     resp: &[u8],
     type_required: CommandType,
 ) -> Result<&[u8], InvalidResponseTypeError> {
@@ -77,50 +77,50 @@ pub fn validate_command_response_type(
     Ok(&resp[3..])
 }
 
-pub fn validate_command_response_result_default<'a>(
+pub fn check_response_result_default<'a>(
     resp: &'a [u8],
     operation_name: &str,
 ) -> Result<&'a [u8], SwionError> {
-    validate_command_response_result(resp, SwionResult::parse_default(resp[0]), operation_name)
+    check_response_result(resp, SwionResult::parse_default, operation_name)
 }
 
-pub fn validate_command_response_result_var1<'a>(
+pub fn check_response_result_simple_inv<'a>(
     resp: &'a [u8],
     operation_name: &str,
 ) -> Result<&'a [u8], SwionError> {
-    validate_command_response_result(resp, SwionResult::parse_var1(resp[0]), operation_name)
+    check_response_result(resp, SwionResult::parse_simple_inv, operation_name)
 }
 
-pub fn validate_command_response_result<'a>(
+fn check_response_result<'a, F: Fn(u8) -> SwionResult>(
     resp: &'a [u8],
-    result: SwionResult,
+    parser: F,
     operation_name: &str,
 ) -> Result<&'a [u8], SwionError> {
+    let result = parser(resp[0]);
     if result.is_error() {
         return Err(SwionError::new(operation_name.to_string(), result));
     }
-
     Ok(&resp[1..])
 }
 
 pub fn key_press(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::KeyPress, &[key])?;
-    validate_command_response_type(&rsp, CommandType::KeyPress)?;
-    validate_command_response_result_var1(&rsp, "command_key_press")?;
+    check_response_type(&rsp, CommandType::KeyPress)?;
+    check_response_result_simple_inv(&rsp, "command_key_press")?;
     Ok(())
 }
 
 pub fn key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::KeyRelease, &[key])?;
-    validate_command_response_type(&rsp, CommandType::KeyRelease)?;
-    validate_command_response_result_var1(&rsp, "command_key_release")?;
+    check_response_type(&rsp, CommandType::KeyRelease)?;
+    check_response_result_simple_inv(&rsp, "command_key_release")?;
     Ok(())
 }
 
 pub fn display_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) -> Result<(), Box<dyn Error>> {
     let args = [mode];
     let rsp = send_command(port, CommandType::DisplayTestMode, &args)?;
-    validate_command_response_type(&rsp, CommandType::DisplayTestMode)?;
-    validate_command_response_result_var1(&rsp, "command_display_test_mode")?;
+    check_response_type(&rsp, CommandType::DisplayTestMode)?;
+    check_response_result_simple_inv(&rsp, "command_display_test_mode")?;
     Ok(())
 }

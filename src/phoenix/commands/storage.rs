@@ -4,7 +4,7 @@ use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::{send_command, validate_command_response_result_default, validate_command_response_type},
+    commands::{send_command, check_response_result_default, check_response_type},
     swion_result::{SwionError, SwionResult},
     types::{
         CommandType, PartialStorageBlock, StorageBlockId, StorageBlockInfo, StorageBlockLength,
@@ -31,7 +31,7 @@ pub fn read_block_info(
     let mut data = [2, 0_u8];
     BigEndian::write_u16(&mut data, index);
     let rsp = send_command(port, CommandType::StorageReadBlockInfo, &data)?;
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadBlockInfo)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageReadBlockInfo)?;
 
     Ok(StorageBlockInfo {
         id: BigEndian::read_u16(&rsp[0..]),
@@ -43,7 +43,7 @@ pub fn read_block_info(
 
 pub fn read_dir_size(port: &mut Box<dyn SerialPort>) -> Result<u16, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadDirSize, &[])?;
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadDirSize)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageReadDirSize)?;
     Ok(BigEndian::read_u16(&rsp))
 }
 
@@ -59,7 +59,7 @@ pub fn read_block_part(
     BigEndian::write_u16(&mut data[4..6], length);
 
     let rsp = send_command(port, CommandType::StorageReadBlockPart, &data)?;
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadBlockPart)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageReadBlockPart)?;
 
     let swion_result = SwionResult::parse_default(rsp[6]);
     if swion_result.is_error() {
@@ -85,7 +85,7 @@ pub fn ext_nvm_read_read_dir(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Vec<StorageBlockInfo>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageExtNvmReadDir, &[])?;
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageExtNvmReadDir)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmReadDir)?;
 
     let mut blocks = Vec::new();
 
@@ -118,8 +118,8 @@ pub fn read_status(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Option<u16>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadStatus, &[])?;
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageReadStatus)?;
-    let rsp = validate_command_response_result_default(&rsp, "storage_read_status")?;
+    let rsp = check_response_type(&rsp, CommandType::StorageReadStatus)?;
+    let rsp = check_response_result_default(&rsp, "storage_read_status")?;
 
     // What does that mean? Is this status only present if result is error?
     if rsp.len() >= 2 {
@@ -145,7 +145,7 @@ pub fn ext_nvm_read(
     let rsp = send_command(port, CommandType::StorageExtNvmRead, &args)?;
     println!("rsp: {:x?}", rsp);
 
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageExtNvmRead)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmRead)?;
 
     let block_count = rsp[0];
 
@@ -176,7 +176,7 @@ pub fn ext_nvm_write(
     let rsp = send_command(port, CommandType::StorageExtNvmWrite, &args)?;
     println!("rsp: {:x?}", rsp);
 
-    let rsp = validate_command_response_type(&rsp, CommandType::StorageExtNvmWrite)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmWrite)?;
 
     let block_count = rsp[0];
     let id = BigEndian::read_u16(&rsp[1..]); // ID
