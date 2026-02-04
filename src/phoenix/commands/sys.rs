@@ -34,7 +34,7 @@ pub fn write_feature_flags(
     port: &mut Box<dyn SerialPort>,
     flags: FeatureFlag,
 ) -> Result<(), Box<dyn Error>> {
-    let mut data = [0, 0, 0, 0];
+    let mut data = [0_u8; 4];
     LittleEndian::write_u32(&mut data, flags.into());
     let rsp = send_command(port, CommandType::SysWriteFeatureFlags, &data)?;
     let rsp = validate_command_response_type(&rsp, CommandType::SysWriteFeatureFlags)?;

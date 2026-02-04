@@ -16,12 +16,8 @@ pub fn key_click(port: &mut Box<dyn SerialPort>) {
     println!("{:X?}", rsp);
 }
 
-pub fn backlight_test_mode(
-    port: &mut Box<dyn SerialPort>,
-    mode: u8,
-) -> Result<(), Box<dyn Error>> {
-    let args = [mode];
-    let rsp = send_command(port, CommandType::ToolsBacklightTestMode, &args)?;
+pub fn backlight_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::ToolsBacklightTestMode, &[mode])?;
     let rsp = validate_command_response_type(&rsp, CommandType::ToolsBacklightTestMode)?;
     validate_command_response_result_var1(&rsp, "command_backlight_test_mode")?;
     Ok(())
@@ -35,8 +31,7 @@ pub fn backlight_normal_mode(port: &mut Box<dyn SerialPort>) -> Result<(), Box<d
 }
 
 pub fn led_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) -> Result<(), Box<dyn Error>> {
-    let args = [mode];
-    let rsp = send_command(port, CommandType::ToolsLedTestMode, &args)?;
+    let rsp = send_command(port, CommandType::ToolsLedTestMode, &[mode])?;
     let rsp = validate_command_response_type(&rsp, CommandType::ToolsLedTestMode)?;
     validate_command_response_result_var1(&rsp, "command_led_test_mode")?;
     Ok(())

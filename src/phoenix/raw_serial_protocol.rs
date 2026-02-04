@@ -20,7 +20,7 @@ pub fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
 
     let device_tpye_cmd: [u8; 1] = [0x55];
     port.write_all(&device_tpye_cmd)?;
-    let size = port.read(&mut read_buf)?;
+    let _size = port.read(&mut read_buf)?;
 
     let device_type = match read_buf[0] {
         0x55 => DeviceType::B,

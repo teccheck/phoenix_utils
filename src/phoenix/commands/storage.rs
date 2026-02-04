@@ -53,7 +53,7 @@ pub fn read_block_part(
     offset: u16,
     length: u16,
 ) -> Result<PartialStorageBlock, Box<dyn Error>> {
-    let mut data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+    let mut data = [6, 0_u8];
     BigEndian::write_u16(&mut data[0..2], id);
     BigEndian::write_u16(&mut data[2..4], offset);
     BigEndian::write_u16(&mut data[4..6], length);
@@ -118,7 +118,6 @@ pub fn read_status(
     port: &mut Box<dyn SerialPort>,
 ) -> Result<Option<u16>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadStatus, &[])?;
-
     let rsp = validate_command_response_type(&rsp, CommandType::StorageReadStatus)?;
     let rsp = validate_command_response_result_default(&rsp, "storage_read_status")?;
 
@@ -129,4 +128,64 @@ pub fn read_status(
     }
 
     Ok(None)
+}
+
+// Class: ac2
+pub fn ext_nvm_read(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<(), Box<dyn Error>> {
+    let mut args = Vec::new();
+    args.push(1_u8); // Number of blocks to read
+    args.extend_from_slice(&[0_u8; 6]);
+
+    BigEndian::write_u16(&mut args[1..], 0x4600); // Block ID
+    BigEndian::write_u16(&mut args[3..], 0x0002); // Offset
+    BigEndian::write_u16(&mut args[5..], 0x0008); // Lenght
+
+    let rsp = send_command(port, CommandType::StorageExtNvmRead, &args)?;
+    println!("rsp: {:x?}", rsp);
+
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageExtNvmRead)?;
+
+    let block_count = rsp[0];
+
+    let id = BigEndian::read_u16(&rsp[1..]); // ID
+    let offset = BigEndian::read_u16(&rsp[3..]); // Offset
+    // What is this junk?
+    let lenght = BigEndian::read_u16(&[rsp[5], rsp[7]]); // Lenght
+    let result = rsp[6];
+
+    println!("BC: {block_count}, ID {id}, off: {offset}, len: {:X?}, res: {result}", lenght);
+
+    Ok(())
+}
+
+// Class: ac3
+// TODO
+pub fn ext_nvm_write(
+    port: &mut Box<dyn SerialPort>,
+) -> Result<(), Box<dyn Error>> {
+    let mut args = Vec::new();
+    args.push(1_u8); // Number of blocks to read
+    args.extend_from_slice(&[0_u8; 6]);
+
+    BigEndian::write_u16(&mut args[1..], 0x4600); // Block ID
+    BigEndian::write_u16(&mut args[3..], 0x0002); // Offset
+    BigEndian::write_u16(&mut args[5..], 0x0008); // Lenght
+
+    let rsp = send_command(port, CommandType::StorageExtNvmWrite, &args)?;
+    println!("rsp: {:x?}", rsp);
+
+    let rsp = validate_command_response_type(&rsp, CommandType::StorageExtNvmWrite)?;
+
+    let block_count = rsp[0];
+    let id = BigEndian::read_u16(&rsp[1..]); // ID
+    let offset = BigEndian::read_u16(&rsp[3..]); // Offset
+    // What is this junk?
+    let lenght = BigEndian::read_u16(&[rsp[5], rsp[7]]); // Lenght
+    let result = rsp[6];
+
+    println!("BC: {block_count}, ID {id}, off: {offset}, len: {:X?}, res: {result}", lenght);
+
+    Ok(())
 }
