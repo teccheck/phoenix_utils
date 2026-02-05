@@ -1,21 +1,22 @@
 mod commands;
 mod types;
 
-use std::time::Duration;
-
 use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
 
 use crate::{
     cli::{
         commands::{
-            backlight_mode, cra_read_capabilities, feature_flags_read_enabled, feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write, key_press, key_release, led_mode, print_device_info, print_storage_block, print_storage_directory, time_get, time_set
+            backlight_mode, cra_read_capabilities, feature_flags_read_enabled,
+            feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write,
+            key_press, key_release, led_mode, print_device_info, print_storage_block,
+            print_storage_directory, time_get, time_set,
         },
         types::{BacklightMode, DisplayMode, LedMode, PagerKey},
     },
     phoenix::{
         self,
-        raw_serial_protocol::handshake,
+        raw_serial_protocol::init_connection,
         types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
     },
 };
@@ -31,16 +32,16 @@ struct CmdArgs {
     )]
     port: String,
 
-    #[arg(short, long, default_value_t = 57600, help = "Baud rate")]
-    baud_rate: u32,
-
     #[arg(short, long, default_value_t = true, help = "Show device info")]
     info: bool,
 
     #[arg(short, long, help = "Programming password")]
     auth: Option<String>,
 
-    #[arg(long, help = "SHA1 hased programming password as hex string without spaces")]
+    #[arg(
+        long,
+        help = "SHA1 hased programming password as hex string without spaces"
+    )]
     auth_hash: Option<String>,
 
     #[command(subcommand)]
@@ -128,7 +129,7 @@ pub enum Commands {
     /// Set display test mode
     Display {
         #[arg(value_enum)]
-        mode: DisplayMode
+        mode: DisplayMode,
     },
 
     /// Set the time on the device
@@ -149,11 +150,15 @@ pub enum Commands {
         #[arg(value_parser=maybe_hex::<u16>)]
         command_type: u16,
 
-        #[arg(short, long, help = "Args data as hex string without spaces (Example: E100)")]
+        #[arg(
+            short,
+            long,
+            help = "Args data as hex string without spaces (Example: E100)"
+        )]
         data: Option<String>,
 
         #[arg(short, long, help = "Try to decode output as string")]
-        string_decode: bool
+        string_decode: bool,
     },
 }
 
@@ -183,19 +188,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 #######################################################################";
 
     println!("{welcome}\n");
-    println!(
-        "Trying port {} with baud rate {}",
-        args.port, args.baud_rate
-    );
+    println!("Trying port {}", args.port);
 
-    let mut port = serialport::new(args.port, args.baud_rate)
-        .data_bits(serialport::DataBits::Eight)
-        .parity(serialport::Parity::None)
-        .stop_bits(serialport::StopBits::One)
-        .timeout(Duration::from_millis(1000))
-        .open()?;
-
-    let device_type = handshake(&mut port)?;
+    let (mut port, device_type) = init_connection(&args.port)?;
     println!("Device Type: {:?}", device_type);
 
     if args.info {
@@ -231,15 +226,19 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::CRAReadCapabilities => cra_read_capabilities(&mut port),
             Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
             Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),
-            Commands::Debug { command_type, data, string_decode } => {
-                phoenix::tasks::debug_task(&mut port, command_type, data, string_decode)
-            }
+            Commands::Debug {
+                command_type,
+                data,
+                string_decode,
+            } => phoenix::tasks::debug_task(&mut port, command_type, data, string_decode),
             Commands::Led { mode } => led_mode(&mut port, mode),
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
             Commands::KeyPress { key } => key_press(&mut port, key),
             Commands::KeyRelease { key } => key_release(&mut port, key),
             Commands::KeyClick => phoenix::commands::tools::key_click(&mut port),
-            Commands::Display { mode } => phoenix::commands::display_test_mode(&mut port, mode as u8),
+            Commands::Display { mode } => {
+                phoenix::commands::display_test_mode(&mut port, mode as u8)
+            }
             Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
         };

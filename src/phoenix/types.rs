@@ -469,20 +469,20 @@ impl DeviceType {
 }
 
 pub struct SerialConfig {
-    baudrate: u32,
-    databits: DataBits,
-    parity: Parity,
-    stopbits: StopBits,
+    pub baudrate: u32,
+    pub databits: DataBits,
+    pub parity: Parity,
+    pub stopbits: StopBits,
 }
 
-const serial_config_1: SerialConfig = SerialConfig {
+pub const SERIAL_CONFIG_1: SerialConfig = SerialConfig {
     baudrate: 460800,
     databits: DataBits::Eight,
     stopbits: StopBits::One,
     parity: Parity::None,
 };
 
-const serial_config_2: SerialConfig = SerialConfig {
+pub const SERIAL_CONFIG_2: SerialConfig = SerialConfig {
     baudrate: 57600,
     databits: DataBits::Eight,
     stopbits: StopBits::One,
