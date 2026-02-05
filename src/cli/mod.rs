@@ -78,16 +78,16 @@ pub enum Commands {
     },
 
     /// Get all currently enabled features
-    FeatureFlagsReadEnabled,
+    FlagsReadEnabled,
 
     /// Get all features that can be enabled
-    FeatureFlagsReadSupported,
+    FlagsReadSupported,
 
     /// Write feature flags to the device (replaces the previous value)
-    FeatureFlagsWrite { flags: Vec<String> },
+    FlagsWrite { flags: Vec<String> },
 
     /// Reads some random value. Not sure what that's for.
-    FeatureFlagsReadUniqueId,
+    FlagsReadUniqueId,
 
     /// Read all command families this device supports
     CRAReadCapabilities,
@@ -221,10 +221,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::ReadStorageBlock { id, offset, length } => {
                 print_storage_block(&mut port, id, offset, length)
             }
-            Commands::FeatureFlagsReadEnabled => feature_flags_read_enabled(&mut port),
-            Commands::FeatureFlagsReadSupported => feature_flags_read_supported(&mut port),
-            Commands::FeatureFlagsWrite { flags } => feature_flags_write(&mut port, flags),
-            Commands::FeatureFlagsReadUniqueId => feature_flags_read_unique_id(&mut port),
+            Commands::FlagsReadEnabled => feature_flags_read_enabled(&mut port),
+            Commands::FlagsReadSupported => feature_flags_read_supported(&mut port),
+            Commands::FlagsWrite { flags } => feature_flags_write(&mut port, flags),
+            Commands::FlagsReadUniqueId => feature_flags_read_unique_id(&mut port),
             Commands::CRAReadCapabilities => cra_read_capabilities(&mut port),
             Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
             Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),
