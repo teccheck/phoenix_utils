@@ -25,11 +25,16 @@ fn check_auth_error(resp: &[u8]) -> Result<(), AuthError> {
     Ok(())
 }
 
-pub fn cra_capability_read(
-    port: &mut Box<dyn SerialPort>,
-) -> Result<CRACapabilities, Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::CRACapabilityRead, &[])?;
-    let rsp = check_response_type(&rsp, CommandType::CRACapabilityRead)?;
+pub fn read_and_auth(port: &mut Box<dyn SerialPort>, key: &[u8]) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
+    let rsp = check_response_type(&rsp, CommandType::LockKeyReadAndAuth)?;
+    check_auth_error(&rsp)?;
+    Ok(())
+}
+
+pub fn capability_read(port: &mut Box<dyn SerialPort>) -> Result<CRACapabilities, Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::CapabilityRead, &[])?;
+    let rsp = check_response_type(&rsp, CommandType::CapabilityRead)?;
     let rsp = check_response_result_default(&rsp, "cra_capability_read")?;
 
     Ok(CRACapabilities {
@@ -39,14 +44,7 @@ pub fn cra_capability_read(
     })
 }
 
-pub fn read_and_auth(port: &mut Box<dyn SerialPort>, key: &[u8]) -> Result<(), Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
-    let rsp = check_response_type(&rsp, CommandType::LockKeyReadAndAuth)?;
-    check_auth_error(&rsp)?;
-    Ok(())
-}
-
-pub fn cra_lock_key_write(
+pub fn cra_write(
     port: &mut Box<dyn SerialPort>,
     key: &[u8],
     enhanced_protection: bool,
@@ -60,8 +58,8 @@ pub fn cra_lock_key_write(
     args.extend_from_slice(key);
     args.extend([ep]);
 
-    let rsp = send_command(port, CommandType::CRALockKeyWrite, &args)?;
-    let rsp = check_response_type(&rsp, CommandType::CRALockKeyWrite)?;
+    let rsp = send_command(port, CommandType::LockKeyCraWrite, &args)?;
+    let rsp = check_response_type(&rsp, CommandType::LockKeyCraWrite)?;
     check_auth_error(&rsp)?;
     Ok(())
 }

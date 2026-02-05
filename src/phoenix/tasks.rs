@@ -156,7 +156,7 @@ pub fn try_authenticate(
     password: Option<String>,
     hash_string: Option<String>,
 ) -> Result<(), Box<dyn Error>> {
-    let caps = commands::lock_key::cra_capability_read(port)?;
+    let caps = commands::lock_key::capability_read(port)?;
 
     let needs_auth = caps.flags.contains(CRACapabilityFlags::LockKeyCommands)
         || caps.flags.contains(CRACapabilityFlags::LockKeyCRACommands);
@@ -204,8 +204,7 @@ pub fn auth_password(
 }
 
 pub fn reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let hash: [u8; 20] = [0; 20];
-    commands::lock_key::cra_lock_key_write(port, &hash, false)
+    commands::lock_key::cra_write(port, &[0_u8; 20], false)
 }
 
 pub fn set_password(
@@ -215,7 +214,7 @@ pub fn set_password(
     let mut hasher = Sha1::new();
     hasher.update(password);
     let hash = hasher.finalize();
-    commands::lock_key::cra_lock_key_write(port, &hash, false)
+    commands::lock_key::cra_write(port, &hash, false)
 }
 
 pub fn feature_flags_read_enabled(
@@ -232,6 +231,6 @@ pub fn check_has_cra_capabilities(
     port: &mut Box<dyn SerialPort>,
     capabilites: CRACapabilityFlags,
 ) -> Result<bool, Box<dyn Error>> {
-    let caps = commands::lock_key::cra_capability_read(port)?;
+    let caps = commands::lock_key::capability_read(port)?;
     Ok(caps.flags.contains(capabilites))
 }

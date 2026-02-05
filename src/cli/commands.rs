@@ -51,7 +51,7 @@ pub fn print_storage_block(
 }
 
 pub fn cra_read_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
-    let capabilities = phoenix::commands::lock_key::cra_capability_read(port)?;
+    let capabilities = phoenix::commands::lock_key::capability_read(port)?;
     println!("Capabilities:\n{}", capabilities);
     Ok(())
 }

@@ -122,13 +122,21 @@ pub enum CommandType {
     // Also triggers startup
     TtsComModeEnter = 0x6510,
     TtsComModeExit = 0x6512,
-    CRACapabilityRead = 0x6700,
-    CRALockKeyWrite = 0x6710,
+
+    // Not sure why CapabilityRead is in here.
+    // I think CRA means Challenge–Response Authentication here
+    CapabilityRead = 0x6700,
+    LockKeyCraWrite = 0x6710,
     LockKeyReadAndAuth = 0x6711,
     LockKeyReset = 0x6712,
     LockKeyDeauth = 0x6713,
-    CRALockKeyRead = 0x6715,
-    CRALockKeyAuth = 0x6716,
+    // Returns Serial number, a few unknown bytes and a counter as ascii chars.
+    // The counter seems to count up with every 0x6714 command that is sent.
+    // However none of the pagers, I tested started at a low counter (less than 100).
+    // Most of them were at way more than 5000, even more than 10000.
+    LockKeyUnknown6714 = 0x6714,
+    LockKeyCraRead = 0x6715,
+    LockKeyCraAuth = 0x6716,
     EuiEndpointRead = 0x6D01,
     DisplayReadLanguageList = 0x7000,
     DisplayReadSupportedMenus = 0x7001,
