@@ -28,22 +28,28 @@ pub enum CommandType {
     SysReadProductStringApplication = 0x0009,
     SysReadProductStringBootloader = 0x000A,
     SysReadHeapStatistics = 0x0060,
+
     BootReboot = 0x0100,
     BootShutdown = 0x0101,
     BootStartup = 0x0102,
     TimeSet = 0x0200,
     TimeGetUtc = 0x0201,
     TimeGetLocal = 0x0203,
+
     BatteryGetChargeState = 0x0301,
+
     MelodyPlaybackStart = 0x0500,
     MelodyPlaybackStop = 0x0501,
+
     AudioReadSegmentInfo = 0x0600,
     AudioSomethingSegmentBlock = 0x0601,
     AudioWriteSegmentBlock = 0x0602,
     AudioReadSegmentBlock = 0x0603,
+
     AnalogAdcRead = 0x1000,
     AnalogVref = 0x1001,
     AnalogTemperatureRead = 0x1003,
+
     ToolsBacklightNormalMode = 0x1103,
     ToolsBacklightTestMode = 0x1104,
     ToolsSequencerPlay06 = 0x1106,
@@ -61,11 +67,14 @@ pub enum CommandType {
     ToolsBeeperTestMode = 0x1110,
     ToolsLedNormalMode = 0x1111,
     ToolsLedTestMode = 0x1112,
+
     // Param 0 for normal
     DisplayTestMode = 0x1200,
+
     // These two are related and both named key press. They're propably press and release
     KeyRelease = 0x1300,
     KeyPress = 0x1301,
+
     StorageReadBlockPart = 0x1400,
     StorageWriteBlock = 0x1401,
     StorageDeleteBlock = 0x1402,
@@ -85,8 +94,11 @@ pub enum CommandType {
     StorageOtpRestore = 0x1471,
     StorageExtNvmReadAlt = 0x14C0,
     StorageExtNvmWriteAlt = 0x14C1,
+
     ExtendedLogRead = 0x1900,
+
     KnobTurn = 0x1A00,
+
     // One of these unknown ones has to be write key
     CryptoUnknown3000 = 0x3000,
     CryptoClearKeys = 0x3001,
@@ -94,15 +106,19 @@ pub enum CommandType {
     CryptoReadKeyCount = 0x3006,
     CryptoReadKeyCountOAP = 0x3007,
     CryptoUnknown3008 = 0x3008,
+
     MessagesReadCount = 0x3100,
     MessagesRead01 = 0x3101, // Read in Monitor???
     MessagesClearPool = 0x3110,
     MessagesRead20 = 0x3120,
+
     FeatureFlagsActivate = 0x4300,
     FeatureFlagsReadUniqueId = 0x4301,
     FeatureFlagsReadEnabled = 0x4302,
     FeatureFlagsReadSupported = 0x4303,
+
     CalibrateAcc = 0x6000,
+    
     GsmReadIMEI = 0x6109,
     GsmReadIMSI = 0x610A,
     GsmReadLocalAreaIdentity = 0x610B,
@@ -110,10 +126,13 @@ pub enum CommandType {
     GsmSendAtCommand = 0x6113,
     GsmFotaCheck = 0x6124,
     GsmFotaUpdate = 0x6126,
+
     GpsEphemerisGetStorageCapacity = 0x6201,
     GpsEphemerisWrite = 0x6202,
     GpsReadVersion = 0x6205,
+
     SupportedPayload = 0x6300,
+
     TtsMessageCommand = 0x6500,
     // Actual command seems to be defined by fourth and fith byte (the two after the command variant byte)
     TtsFileCommand = 0x6501,
@@ -137,14 +156,18 @@ pub enum CommandType {
     LockKeyUnknown6714 = 0x6714,
     LockKeyCraRead = 0x6715,
     LockKeyCraAuth = 0x6716,
+
     EuiEndpointRead = 0x6D01,
+
     DisplayReadLanguageList = 0x7000,
     DisplayReadSupportedMenus = 0x7001,
     DisplayReadSupportedFonts = 0x7002,
     // Byte after variant: 7: ricprog1, 11: ric500a, 13: tuning, 15: Testmode off
     DisplayActivateTestMode = 0x7006,
     DisplayUnlockTuning = 0x7007,
+
     TestMessageSend = 0x8001,
+
     Tools2RadioMode = 0x8102,
     // Byte after variant 0 for normal, 1 for shifted
     Tools2SetClockMode = 0x8104,
@@ -358,11 +381,7 @@ pub struct FeatureFlagNotFoundError {
 
 impl fmt::Display for FeatureFlagNotFoundError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Feature flag not valid: {}",
-            self.flag_name,
-        )?;
+        write!(f, "Feature flag not valid: {}", self.flag_name,)?;
         Ok(())
     }
 }
@@ -380,8 +399,7 @@ impl fmt::Display for InvalidResponseTypeError {
         write!(
             f,
             "Response had invalid type. Should have been {:X?}, but was {:X?}",
-            self.type_required,
-            self.type_actual,
+            self.type_required, self.type_actual,
         )?;
         Ok(())
     }

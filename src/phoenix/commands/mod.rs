@@ -44,23 +44,17 @@ fn send_command_raw(
     Ok(rsp)
 }
 
-pub fn debug_command(port: &mut Box<dyn SerialPort>, command_type: u16, data: &[u8]) {
-    let result = send_command_raw(
+pub fn debug_command(
+    port: &mut Box<dyn SerialPort>,
+    command_type: u16,
+    data: &[u8],
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    send_command_raw(
         port,
         (command_type >> 8) as u8,
         (command_type & 0xFF) as u8,
         data,
-    );
-    match result {
-        Ok(data) => {
-            println!("Ok: {:X?}", data);
-        }
-        Err(e) => {
-            println!("Err: {:?}", e);
-        }
-    }
-
-    println!("Done");
+    )
 }
 
 pub fn check_response_type(

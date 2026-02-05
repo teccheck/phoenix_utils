@@ -151,6 +151,9 @@ pub enum Commands {
 
         #[arg(short, long, help = "Args data as hex string without spaces (Example: E100)")]
         data: Option<String>,
+
+        #[arg(short, long, help = "Try to decode output as string")]
+        string_decode: bool
     },
 }
 
@@ -228,8 +231,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::CRAReadCapabilities => cra_read_capabilities(&mut port),
             Commands::ResetPassword => phoenix::tasks::reset_password(&mut port),
             Commands::SetPassword { password } => phoenix::tasks::set_password(&mut port, password),
-            Commands::Debug { command_type, data } => {
-                phoenix::tasks::debug_task(&mut port, command_type, data)
+            Commands::Debug { command_type, data, string_decode } => {
+                phoenix::tasks::debug_task(&mut port, command_type, data, string_decode)
             }
             Commands::Led { mode } => led_mode(&mut port, mode),
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),

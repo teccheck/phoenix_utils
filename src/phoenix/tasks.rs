@@ -6,6 +6,7 @@ use sha1::{Digest, Sha1};
 
 use crate::phoenix::{
     commands,
+    encoding::decode_string,
     types::{
         CRACapabilityFlags, DeviceInfo, FeatureFlag, StorageBlockId, StorageBlockInfo,
         StorageBlockLength, StorageBlockOffset,
@@ -16,6 +17,7 @@ pub fn debug_task(
     port: &mut Box<dyn SerialPort>,
     command_type: u16,
     data: Option<String>,
+    string_decode: bool,
 ) -> Result<(), Box<dyn Error>> {
     let args = if let Some(d) = data {
         decode_hex(&d)?
@@ -23,7 +25,22 @@ pub fn debug_task(
         Vec::new()
     };
 
-    commands::debug_command(port, command_type, args.as_slice());
+    let result = commands::debug_command(port, command_type, args.as_slice());
+    match result {
+        Ok(data) => {
+            println!("Ok: {:X?}", data);
+
+            if string_decode {
+                println!("String: {}", decode_string(&data));
+            }
+        }
+        Err(e) => {
+            println!("Err: {:?}", e);
+        }
+    }
+
+    println!("Done");
+
     Ok(())
 }
 
