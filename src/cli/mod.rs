@@ -131,18 +131,20 @@ pub enum Commands {
         mode: DisplayMode
     },
 
+    /// Set the time on the device
     TimeSet {
         #[arg(help = "Set a custom UTC time. Format: 2012-01-30T15:30:59")]
         time: Option<String>,
     },
 
+    /// Get the time on the device
     TimeGet {
         #[arg(short, long, default_value_t = false, help = "Get time as UTC")]
         utc: bool,
     },
 
     /// Try out an arbitrary command code with optional data.
-    /// Might have unforeseen consequences. Use carefully!
+    /// Use carefully! Prepare for unforeseen consequences λ.
     Debug {
         #[arg(value_parser=maybe_hex::<u16>)]
         command_type: u16,
