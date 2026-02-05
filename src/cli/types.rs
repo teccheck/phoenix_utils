@@ -32,3 +32,20 @@ pub enum PagerKey {
     // Only present on s.QUAD models
     //Back = 8,
 }
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Parser)]
+#[repr(u8)]
+pub enum DisplayMode {
+    /// Normal mode. Only takes effect if the display is updated. For example by pressing a button.
+    Normal = 0,
+    /// All pixels on
+    On = 1,
+    /// All pixels off
+    Off = 2,
+    /// Checkerboard pattern
+    Checkerboard = 3,
+    /// Inverse checkerboard pattern
+    CheckerboardInv = 4,
+    /// Not supported on all models
+    Grayscale = 5,
+}

@@ -11,7 +11,7 @@ use crate::{
         commands::{
             backlight_mode, cra_read_capabilities, feature_flags_read_enabled, feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write, key_press, key_release, led_mode, print_device_info, print_storage_block, print_storage_directory, time_get, time_set
         },
-        types::{BacklightMode, LedMode, PagerKey},
+        types::{BacklightMode, DisplayMode, LedMode, PagerKey},
     },
     phoenix::{
         self,
@@ -125,6 +125,12 @@ pub enum Commands {
     /// Makes the key press click sound
     KeyClick,
 
+    /// Set display test mode
+    Display {
+        #[arg(value_enum)]
+        mode: DisplayMode
+    },
+
     TimeSet {
         #[arg(help = "Set a custom UTC time. Format: 2012-01-30T15:30:59")]
         time: Option<String>,
@@ -228,6 +234,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::KeyPress { key } => key_press(&mut port, key),
             Commands::KeyRelease { key } => key_release(&mut port, key),
             Commands::KeyClick => phoenix::commands::tools::key_click(&mut port),
+            Commands::Display { mode } => phoenix::commands::display_test_mode(&mut port, mode as u8),
             Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
         };

@@ -118,9 +118,7 @@ pub fn key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dy
 }
 
 pub fn display_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) -> Result<(), Box<dyn Error>> {
-    let args = [mode];
-    let rsp = send_command(port, CommandType::DisplayTestMode, &args)?;
+    let rsp = send_command(port, CommandType::DisplayTestMode, &[mode])?;
     check_response_type(&rsp, CommandType::DisplayTestMode)?;
-    check_response_result_simple_inv(&rsp, "command_display_test_mode")?;
     Ok(())
 }
