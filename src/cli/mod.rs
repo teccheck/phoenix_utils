@@ -212,10 +212,10 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(command) = args.command {
         let result = match command {
             Commands::Reboot { reboot_type } => {
-                phoenix::commands::device_reset::reboot(&mut port, reboot_type)
+                phoenix::commands::boot::reboot(&mut port, reboot_type)
             }
-            Commands::Shutdown => phoenix::commands::device_reset::shutdown(&mut port),
-            Commands::Bootup => phoenix::commands::device_reset::startup(&mut port),
+            Commands::Shutdown => phoenix::commands::boot::shutdown(&mut port),
+            Commands::Bootup => phoenix::commands::boot::startup(&mut port),
             Commands::PrintStorageDir => print_storage_directory(&mut port),
             Commands::DumpStorage => phoenix::tasks::dump_storage(&mut port),
             Commands::ReadStorageBlock { id, offset, length } => {

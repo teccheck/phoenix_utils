@@ -1,4 +1,4 @@
-pub mod device_reset;
+pub mod boot;
 pub mod feature_flags;
 pub mod lock_key;
 pub mod storage;
