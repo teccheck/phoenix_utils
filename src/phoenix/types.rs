@@ -5,6 +5,7 @@ use std::{
 
 use bitmask_enum::bitmask;
 use clap::{Parser, ValueEnum};
+use serialport::{DataBits, Parity, StopBits};
 use strum::{Display, FromRepr};
 
 use crate::phoenix::swion_result::SwionResult;
@@ -118,7 +119,7 @@ pub enum CommandType {
     FeatureFlagsReadSupported = 0x4303,
 
     CalibrateAcc = 0x6000,
-    
+
     GsmReadIMEI = 0x6109,
     GsmReadIMSI = 0x610A,
     GsmReadLocalAreaIdentity = 0x610B,
@@ -264,16 +265,27 @@ impl Display for FeatureFlag {
 #[bitmask(u16)]
 #[bitmask_config(vec_debug, flags_iter)]
 pub enum CRACapabilityFlags {
+    /// Seems to be commands related to menu structure and user interface
     MMICommands = 1,
+    /// TTS stands for text to speach
     TTSCommands = 2,
+    /// Extended commands for non volatile memory interaction
     ExtendedNVMCommands = 4,
+    /// No idea what this is for
     SW09Commands = 8,
+    /// Seems to be related to the two payload sizes
     PayloadCommands = 16,
+    /// Allows to interact with feature flags
     FeatureFlagCommands = 32,
+    /// ADPCM is a somewhat compressed audio format
     ADPCMAudioCommands = 64,
+    /// Somewhat sane authentication via programming password
     LockKeyCommands = 128,
+    /// Good? authentication via challenge response auth?
     LockKeyCRACommands = 256,
+    /// Probably for reading system logs
     ExtendedLogCommands = 512,
+    /// Allows transaction based storage operations
     TransactionCommands = 1024,
 }
 
@@ -418,28 +430,61 @@ impl InvalidResponseTypeError {
 
 /// Not sure what they mean
 /// Also known as device generation
-#[derive(Debug, Display)]
+#[derive(Debug, Display, FromRepr)]
+#[repr(u8)]
 pub enum DeviceType {
     /// Some kind of default/error value (perhaps unknown)
-    A,
+    None = 0x00,
 
-    /// Unknown
-    B,
+    /// Unknown device type (maybe older DE09A hardware?)
+    /// Answers with 0x55 to the initial handshake
+    B = 0x55,
 
     /// Seems to be the type for all DE10A Hardware from Firmware 3.94 to 4.90
     /// Uses serial config 2 (57600 Baud, 8 Data bits, 1 Stop bit, Parity 0)
+    /// Answers with 0x56 to the initial handshake
     DE10A,
 
     /// Unknown device type
     /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
     /// Supports encrypted dump
+    /// Answers with 0x57 to the initial handshake
     D,
 
-    /// Unknown
+    /// Unknown device type
     /// Supports encrypted dump
+    /// Answers with 0x58 to the initial handshake
     E,
 
     /// Unknown device type
     /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
+    /// Answers with 0x59 to the initial handshake
     F,
 }
+
+impl DeviceType {
+    pub fn parse(result: u8) -> DeviceType {
+        DeviceType::from_repr(result).unwrap_or(DeviceType::None)
+    }
+}
+
+pub struct SerialConfig {
+    baudrate: u32,
+    databits: DataBits,
+    parity: Parity,
+    stopbits: StopBits,
+}
+
+const serial_config_1: SerialConfig = SerialConfig {
+    baudrate: 460800,
+    databits: DataBits::Eight,
+    stopbits: StopBits::One,
+    parity: Parity::None,
+};
+
+const serial_config_2: SerialConfig = SerialConfig {
+    baudrate: 57600,
+    databits: DataBits::Eight,
+    stopbits: StopBits::One,
+    parity: Parity::None,
+};
