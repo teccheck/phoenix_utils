@@ -19,20 +19,20 @@ pub fn set_utc(
     write_time(&mut args, datetime);
     let rsp = send_command(port, CommandType::TimeSet, &args)?;
     let rsp = check_response_type(&rsp, CommandType::TimeSet)?;
-    check_response_result_simple_inv(&rsp, "time_set_utc")?;
+    check_response_result_simple_inv(rsp, "time_set_utc")?;
     Ok(())
 }
 
 pub fn get_utc(port: &mut Box<dyn SerialPort>) -> Result<NaiveDateTime, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::TimeGetUtc, &[])?;
     let rsp = check_response_type(&rsp, CommandType::TimeGetUtc)?;
-    Ok(read_time(&rsp))
+    Ok(read_time(rsp))
 }
 
 pub fn get_local(port: &mut Box<dyn SerialPort>) -> Result<NaiveDateTime, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::TimeGetLocal, &[])?;
     let rsp = check_response_type(&rsp, CommandType::TimeGetLocal)?;
-    Ok(read_time(&rsp))
+    Ok(read_time(rsp))
 }
 
 fn read_time(data: &[u8]) -> NaiveDateTime {

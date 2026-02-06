@@ -16,13 +16,8 @@ use crate::{
     },
     phoenix::{
         self,
-        commands::storage::{ext_nvm_read, ext_nvm_write},
-        encoding::decode_string,
         raw_serial_protocol::init_connection,
-        types::{
-            PartialStorageBlock, ReadStorageBlock, ResetType, StorageBlockId, StorageBlockLength,
-            StorageBlockOffset,
-        },
+        types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
     },
 };
 

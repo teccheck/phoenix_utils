@@ -28,14 +28,14 @@ fn check_auth_error(resp: &[u8]) -> Result<(), AuthError> {
 pub fn read_and_auth(port: &mut Box<dyn SerialPort>, key: &[u8]) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::LockKeyReadAndAuth, key)?;
     let rsp = check_response_type(&rsp, CommandType::LockKeyReadAndAuth)?;
-    check_auth_error(&rsp)?;
+    check_auth_error(rsp)?;
     Ok(())
 }
 
 pub fn capability_read(port: &mut Box<dyn SerialPort>) -> Result<CRACapabilities, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::CapabilityRead, &[])?;
     let rsp = check_response_type(&rsp, CommandType::CapabilityRead)?;
-    let rsp = check_response_result_default(&rsp, "cra_capability_read")?;
+    let rsp = check_response_result_default(rsp, "cra_capability_read")?;
 
     Ok(CRACapabilities {
         flags: CRACapabilityFlags::from(BigEndian::read_u16(&rsp[0..])),
@@ -60,6 +60,6 @@ pub fn cra_write(
 
     let rsp = send_command(port, CommandType::LockKeyCraWrite, &args)?;
     let rsp = check_response_type(&rsp, CommandType::LockKeyCraWrite)?;
-    check_auth_error(&rsp)?;
+    check_auth_error(rsp)?;
     Ok(())
 }

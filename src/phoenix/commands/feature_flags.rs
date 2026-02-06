@@ -21,7 +21,7 @@ pub fn read_enabled(
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadEnabled, &[])?;
     let rsp = check_response_type(&rsp, CommandType::FeatureFlagsReadEnabled)?;
-    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp)))
+    Ok(FeatureFlag::from(LittleEndian::read_u32(rsp)))
 }
 
 pub fn read_supported(
@@ -29,5 +29,5 @@ pub fn read_supported(
 ) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::FeatureFlagsReadSupported, &[])?;
     let rsp = check_response_type(&rsp, CommandType::FeatureFlagsReadSupported)?;
-    Ok(FeatureFlag::from(LittleEndian::read_u32(&rsp)))
+    Ok(FeatureFlag::from(LittleEndian::read_u32(rsp)))
 }

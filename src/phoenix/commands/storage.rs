@@ -46,7 +46,7 @@ pub fn read_block_info(
 pub fn read_dir_size(port: &mut Box<dyn SerialPort>) -> Result<u16, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadDirSize, &[])?;
     let rsp = check_response_type(&rsp, CommandType::StorageReadDirSize)?;
-    Ok(BigEndian::read_u16(&rsp))
+    Ok(BigEndian::read_u16(rsp))
 }
 
 pub fn read_block_part(
@@ -91,8 +91,8 @@ pub fn ext_nvm_read_read_dir(
 
     let mut blocks = Vec::new();
 
-    for i in (0..(&rsp).len()).step_by(7) {
-        let block_data = &(&rsp)[i..];
+    for i in (0..rsp.len()).step_by(7) {
+        let block_data = &rsp[i..];
         if block_data.len() < 7 {
             break;
         }
@@ -119,11 +119,11 @@ pub fn ext_nvm_read_read_dir(
 pub fn read_status(port: &mut Box<dyn SerialPort>) -> Result<Option<u16>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadStatus, &[])?;
     let rsp = check_response_type(&rsp, CommandType::StorageReadStatus)?;
-    let rsp = check_response_result_default(&rsp, "storage_read_status")?;
+    let rsp = check_response_result_default(rsp, "storage_read_status")?;
 
     // What does that mean? Is this status only present if result is error?
     if rsp.len() >= 2 {
-        let status = BigEndian::read_u16(&rsp);
+        let status = BigEndian::read_u16(rsp);
         return Ok(Some(status));
     }
 

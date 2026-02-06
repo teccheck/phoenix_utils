@@ -45,15 +45,9 @@ fn try_init_connection(
 }
 
 pub fn init_connection(path: &String) -> Result<(Box<dyn SerialPort>, DeviceType), Error> {
-    match try_init_connection(path, SERIAL_CONFIG_1) {
-        Ok(tuple) => return Ok(tuple),
-        Err(_) => {}
-    }
+    if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_1) { return Ok(tuple) }
 
-    match try_init_connection(path, SERIAL_CONFIG_2) {
-        Ok(tuple) => return Ok(tuple),
-        Err(_) => {}
-    }
+    if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_2) { return Ok(tuple) }
 
     Err(Error {
         kind: serialport::ErrorKind::Unknown,
