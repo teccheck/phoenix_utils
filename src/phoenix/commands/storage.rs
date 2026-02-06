@@ -159,7 +159,6 @@ pub fn ext_nvm_read(
         let length = BigEndian::read_u16(&data[4..]);
         let result = SwionResult::parse_default(data[6]);
 
-        let len_usize = length as usize;
         let block_end = 7 + length as usize;
         let data = &data[7..block_end];
 

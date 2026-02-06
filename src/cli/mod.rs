@@ -78,6 +78,7 @@ pub enum Commands {
         length: StorageBlockLength,
     },
 
+    /// Write data to a specific storage block. Be careful!
     WriteStorageBlock {
         #[arg(value_parser=maybe_hex::<StorageBlockId>)]
         id: StorageBlockId,

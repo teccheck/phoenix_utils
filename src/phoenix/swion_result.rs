@@ -1,5 +1,7 @@
 // I hate this!
 // Why are there so many different ways to encode this???
+// There's enough space to store 256 different codes in a byte.
+// So there's no reason to have such overlap!
 
 use std::{error::Error, fmt};
 
