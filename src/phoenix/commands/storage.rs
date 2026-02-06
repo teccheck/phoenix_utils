@@ -4,13 +4,15 @@ use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::{send_command, check_response_result_default, check_response_type},
+    commands::{check_response_result_default, check_response_type, send_command},
     swion_result::{SwionError, SwionResult},
     types::{
-        CommandType, PartialStorageBlock, StorageBlockId, StorageBlockInfo, StorageBlockLength,
-        StorageBlockPermissions, StorageBlockVersion,
+        CommandType, PartialStorageBlock, ReadStorageBlock, StorageBlockId, StorageBlockInfo,
+        StorageBlockLength, StorageBlockPermissions, StorageBlockVersion,
     },
 };
+
+const CRC16: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_KERMIT);
 
 pub fn delete_block(
     port: &mut Box<dyn SerialPort>,
@@ -114,9 +116,7 @@ pub fn ext_nvm_read_read_dir(
     Ok(blocks)
 }
 
-pub fn read_status(
-    port: &mut Box<dyn SerialPort>,
-) -> Result<Option<u16>, Box<dyn Error>> {
+pub fn read_status(port: &mut Box<dyn SerialPort>) -> Result<Option<u16>, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::StorageReadStatus, &[])?;
     let rsp = check_response_type(&rsp, CommandType::StorageReadStatus)?;
     let rsp = check_response_result_default(&rsp, "storage_read_status")?;
@@ -133,59 +133,98 @@ pub fn read_status(
 // Class: ac2
 pub fn ext_nvm_read(
     port: &mut Box<dyn SerialPort>,
-) -> Result<(), Box<dyn Error>> {
+    read_blocks: &[ReadStorageBlock],
+) -> Result<Vec<PartialStorageBlock>, Box<dyn Error>> {
     let mut args = Vec::new();
-    args.push(1_u8); // Number of blocks to read
-    args.extend_from_slice(&[0_u8; 6]);
 
-    BigEndian::write_u16(&mut args[1..], 0x4600); // Block ID
-    BigEndian::write_u16(&mut args[3..], 0x0002); // Offset
-    BigEndian::write_u16(&mut args[5..], 0x0008); // Lenght
+    for block in read_blocks {
+        let mut block_args = [0_u8; 6];
+        BigEndian::write_u16(&mut block_args[0..], block.id);
+        BigEndian::write_u16(&mut block_args[2..], block.offset);
+        BigEndian::write_u16(&mut block_args[4..], block.length);
+        args.extend_from_slice(&block_args);
+    }
 
     let rsp = send_command(port, CommandType::StorageExtNvmRead, &args)?;
+    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmRead)?;
     println!("rsp: {:x?}", rsp);
 
-    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmRead)?;
+    let mut partial_blocks = Vec::new();
+    let mut index = 0;
 
-    let block_count = rsp[0];
+    for block in read_blocks {
+        let data = &rsp[index..];
+        let id = BigEndian::read_u16(&data[0..]);
+        let offset = BigEndian::read_u16(&data[2..]);
+        let length = BigEndian::read_u16(&data[4..]);
+        let result = SwionResult::parse_default(data[6]);
 
-    let id = BigEndian::read_u16(&rsp[1..]); // ID
-    let offset = BigEndian::read_u16(&rsp[3..]); // Offset
-    // What is this junk?
-    let lenght = BigEndian::read_u16(&[rsp[5], rsp[7]]); // Lenght
-    let result = rsp[6];
+        let len_usize = length as usize;
+        let block_end = 7 + length as usize;
+        let data = &data[7..block_end];
 
-    println!("BC: {block_count}, ID {id}, off: {offset}, len: {:X?}, res: {result}", lenght);
+        partial_blocks.push(PartialStorageBlock {
+            id,
+            offset,
+            length,
+            data: data.to_vec(),
+        });
 
-    Ok(())
+        index += block_end;
+    }
+
+    let checksum_msg = BigEndian::read_u16(&rsp[rsp.len() - 2..]);
+    let checksum_calc = CRC16.checksum(&rsp[0..rsp.len() - 2]);
+
+    if checksum_msg != checksum_calc {
+        return Err(SwionError::new(
+            "storage_ext_nvm_read".to_string(),
+            SwionResult::ChecksumMismatch,
+        )
+        .into());
+    }
+
+    Ok(partial_blocks)
 }
 
 // Class: ac3
-// TODO
-pub fn ext_nvm_write(
-    port: &mut Box<dyn SerialPort>,
-) -> Result<(), Box<dyn Error>> {
+pub fn ext_nvm_write(port: &mut Box<dyn SerialPort>, write_blocks: &[PartialStorageBlock]) -> Result<(), Box<dyn Error>> {
     let mut args = Vec::new();
-    args.push(1_u8); // Number of blocks to read
-    args.extend_from_slice(&[0_u8; 6]);
 
-    BigEndian::write_u16(&mut args[1..], 0x4600); // Block ID
-    BigEndian::write_u16(&mut args[3..], 0x0002); // Offset
-    BigEndian::write_u16(&mut args[5..], 0x0008); // Lenght
+    for block in write_blocks {
+        let mut block_args = [0_u8; 6];
+        BigEndian::write_u16(&mut block_args[0..], block.id);
+        BigEndian::write_u16(&mut block_args[2..], block.offset);
+        BigEndian::write_u16(&mut block_args[4..], block.length);
+        args.extend_from_slice(&block_args);
+        args.extend_from_slice(&block.data);
+    }
 
-    let rsp = send_command(port, CommandType::StorageExtNvmWrite, &args)?;
+    let checksum = CRC16.checksum(&args);
+    args.extend_from_slice(&[0_u8; 2]);
+    let checksum_index = args.len() - 2;
+    BigEndian::write_u16(&mut args[checksum_index..], checksum);
+
+    println!("args: {:x?}", args);
+
+    let rsp = send_command(port, CommandType::StorageExtNvmWrite, &args)?;    
+    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmWrite)?;
     println!("rsp: {:x?}", rsp);
 
-    let rsp = check_response_type(&rsp, CommandType::StorageExtNvmWrite)?;
+    let mut index = 0;
+    for block in write_blocks {
+        let data = &rsp[index..];
+        let id = BigEndian::read_u16(&data[0..]);
+        let offset = BigEndian::read_u16(&data[2..]);
+        let length = BigEndian::read_u16(&data[4..]);
+        let result = SwionResult::parse_default(data[6]);
 
-    let block_count = rsp[0];
-    let id = BigEndian::read_u16(&rsp[1..]); // ID
-    let offset = BigEndian::read_u16(&rsp[3..]); // Offset
-    // What is this junk?
-    let lenght = BigEndian::read_u16(&[rsp[5], rsp[7]]); // Lenght
-    let result = rsp[6];
+        if id != block.id || offset != block.offset || length != block.length || result.is_error() {
+            return Err(SwionError::new("storage_ext_nvm_write".to_string(), SwionResult::DataInvalid).into());
+        }
 
-    println!("BC: {block_count}, ID {id}, off: {offset}, len: {:X?}, res: {result}", lenght);
+        index += 7;
+    }
 
     Ok(())
 }

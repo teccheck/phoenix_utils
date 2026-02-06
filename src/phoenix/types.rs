@@ -333,6 +333,13 @@ pub struct PartialStorageBlock {
     pub data: Vec<u8>,
 }
 
+#[derive(Debug)]
+pub struct ReadStorageBlock {
+    pub id: StorageBlockId,
+    pub offset: StorageBlockOffset,
+    pub length: StorageBlockLength,
+}
+
 pub struct DeviceInfo {
     pub serial_number: String,
     pub firmware_version: String,

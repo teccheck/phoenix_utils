@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, num::ParseIntError};
 
 use chrono::NaiveDateTime;
 use serialport::SerialPort;
@@ -13,6 +13,13 @@ use crate::{
         },
     },
 };
+
+fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+        .collect()
+}
 
 pub fn print_device_info(port: &mut Box<dyn SerialPort>) {
     match phoenix::tasks::read_device_info(port) {
@@ -48,6 +55,17 @@ pub fn print_storage_block(
     let data = phoenix::tasks::read_storage_block(port, id, offset, length)?;
     println!("Storage Block ({:X}): {:X?}", id, data);
     Ok(())
+}
+
+pub fn write_storage_block(
+    port: &mut Box<dyn SerialPort>,
+    id: StorageBlockId,
+    offset: StorageBlockOffset,
+    length: StorageBlockLength,
+    data: String,
+) -> Result<(), Box<dyn Error>> {
+    let data = decode_hex(&data)?;
+    phoenix::tasks::write_storage_block(port, id, offset, length, &data)
 }
 
 pub fn cra_read_capabilities(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {

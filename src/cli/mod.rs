@@ -10,14 +10,19 @@ use crate::{
             backlight_mode, cra_read_capabilities, feature_flags_read_enabled,
             feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write,
             key_press, key_release, led_mode, print_device_info, print_storage_block,
-            print_storage_directory, time_get, time_set,
+            print_storage_directory, time_get, time_set, write_storage_block,
         },
         types::{BacklightMode, DisplayMode, LedMode, PagerKey},
     },
     phoenix::{
         self,
+        commands::storage::{ext_nvm_read, ext_nvm_write},
+        encoding::decode_string,
         raw_serial_protocol::init_connection,
-        types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+        types::{
+            PartialStorageBlock, ReadStorageBlock, ResetType, StorageBlockId, StorageBlockLength,
+            StorageBlockOffset,
+        },
     },
 };
 
@@ -76,6 +81,17 @@ pub enum Commands {
         offset: StorageBlockOffset,
         #[arg(short, long, value_parser=maybe_hex::<StorageBlockLength>)]
         length: StorageBlockLength,
+    },
+
+    WriteStorageBlock {
+        #[arg(value_parser=maybe_hex::<StorageBlockId>)]
+        id: StorageBlockId,
+        #[arg(value_parser=maybe_hex::<StorageBlockOffset>, default_value_t=0)]
+        offset: StorageBlockOffset,
+        #[arg(value_parser=maybe_hex::<StorageBlockLength>)]
+        length: StorageBlockLength,
+        #[arg(help = "Data to write as hex string without spaces (Example: E100)")]
+        data: String,
     },
 
     /// Get all currently enabled features
@@ -219,6 +235,12 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::ReadStorageBlock { id, offset, length } => {
                 print_storage_block(&mut port, id, offset, length)
             }
+            Commands::WriteStorageBlock {
+                id,
+                offset,
+                length,
+                data,
+            } => write_storage_block(&mut port, id, offset, length, data),
             Commands::FlagsReadEnabled => feature_flags_read_enabled(&mut port),
             Commands::FlagsReadSupported => feature_flags_read_supported(&mut port),
             Commands::FlagsWrite { flags } => feature_flags_write(&mut port, flags),

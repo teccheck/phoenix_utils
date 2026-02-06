@@ -8,8 +8,8 @@ use crate::phoenix::{
     commands,
     encoding::decode_string,
     types::{
-        CRACapabilityFlags, DeviceInfo, FeatureFlag, StorageBlockId, StorageBlockInfo,
-        StorageBlockLength, StorageBlockOffset,
+        CRACapabilityFlags, DeviceInfo, FeatureFlag, PartialStorageBlock, StorageBlockId,
+        StorageBlockInfo, StorageBlockLength, StorageBlockOffset,
     },
 };
 
@@ -152,6 +152,24 @@ pub fn read_storage_block(
     }
 
     Ok(data)
+}
+
+pub fn write_storage_block(
+    port: &mut Box<dyn SerialPort>,
+    id: StorageBlockId,
+    offset: StorageBlockOffset,
+    length: StorageBlockLength,
+    data: &[u8],
+) -> Result<(), Box<dyn Error>> {
+    commands::storage::ext_nvm_write(
+        port,
+        &[PartialStorageBlock {
+            id,
+            offset,
+            length,
+            data: data.to_vec(),
+        }],
+    )
 }
 
 pub fn read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Box<dyn Error>> {
