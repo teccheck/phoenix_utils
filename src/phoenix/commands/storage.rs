@@ -18,7 +18,7 @@ pub fn delete_block(
     port: &mut Box<dyn SerialPort>,
     id: StorageBlockId,
 ) -> Result<(), Box<dyn Error>> {
-    let mut data = [2, 0_u8];
+    let mut data = [0_u8; 2];
     BigEndian::write_u16(&mut data, id);
     let rsp = send_command(port, CommandType::StorageDeleteBlock, &data)?;
     println!("rsp: {:x?}", rsp);
@@ -30,7 +30,7 @@ pub fn read_block_info(
     port: &mut Box<dyn SerialPort>,
     index: u16,
 ) -> Result<StorageBlockInfo, Box<dyn Error>> {
-    let mut data = [2, 0_u8];
+    let mut data = [0_u8; 2];
     BigEndian::write_u16(&mut data, index);
     let rsp = send_command(port, CommandType::StorageReadBlockInfo, &data)?;
     let rsp = check_response_type(&rsp, CommandType::StorageReadBlockInfo)?;
@@ -55,7 +55,7 @@ pub fn read_block_part(
     offset: u16,
     length: u16,
 ) -> Result<PartialStorageBlock, Box<dyn Error>> {
-    let mut data = [6, 0_u8];
+    let mut data = [0_u8; 6];
     BigEndian::write_u16(&mut data[0..2], id);
     BigEndian::write_u16(&mut data[2..4], offset);
     BigEndian::write_u16(&mut data[4..6], length);
