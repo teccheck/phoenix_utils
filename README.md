@@ -4,6 +4,12 @@ This is a little project to interface with the DE10A pager hardware by [Swisspho
 
 This is in very early stages of development. Docs don't exist, and the code quality is lacking. There are also a lot of missing features. However, I appreciate stars and especially help. In any case, I hope you like it.
 
+If you do want to contribute, I recommend [de4dotEx](https://github.com/GDATAAdvancedAnalytics/de4dotEx) and [dnSpyEx](https://github.com/dnSpyEx/dnSpy) for deobfuscation and decompilation.
+
+## Disclaimer
+
+This project is for educational purposes only. Use at your own risk. I did not use any illegally obtained resources during the development of this code.
+
 ## Project structure
 
 You'll find two main modules in here: phoenix and cli. Cli, as the name implies contains all functionality related to input and output from and to the user. Phoenix is much more interesting, as it contains all business logic and communication protocols. The name is used by Swion for their library as well, and I like it. Here you'll find submodules for commands, tasks (more complex stuff using multiple commands), protocols, types, and a string encoding. I'd say, the code is fairly understandable even if you're not used to Rust.
@@ -11,7 +17,7 @@ You'll find two main modules in here: phoenix and cli. Cli, as the name implies 
 ## TODO
 
 - [x] Dynamic buffer size in SCI Frame protocol and raw
-- [ ] Error handling in commands via SwionResult and SwionError
+- [x] Error handling in commands via SwionResult and SwionError
 - [ ] Move utilities into utils crate or similar
 - [ ] Move CommandType into its own crate?
 - [x] Implement time set/get commands
@@ -20,3 +26,7 @@ You'll find two main modules in here: phoenix and cli. Cli, as the name implies 
 - [ ] Hierarchic CLI commands
 - [x] Module hierarchy for phoenix commands
 - [ ] Look for more stuff to do
+
+## More
+
+If you're interested in the topic, there are a handful of articles on my [website](https://teccheck.xyz/blog/the-de10a-pager).
