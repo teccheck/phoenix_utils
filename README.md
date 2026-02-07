@@ -8,7 +8,7 @@ If you do want to contribute, I recommend [de4dotEx](https://github.com/GDATAAdv
 
 ## Disclaimer
 
-This project is for educational purposes only. Use at your own risk. I did not use any illegally obtained resources during the development of this code.
+This project is for educational purposes only. Use at your own risk. This is not endorsed by Swissphone, and I'm not connected to them or their partners in any way. I did not use any illegally obtained resources during the development of this code.
 
 ## Project structure
 
