@@ -1,5 +1,6 @@
 mod commands;
 mod types;
+mod utils;
 
 use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
@@ -7,12 +8,13 @@ use clap_num::maybe_hex;
 use crate::{
     cli::{
         commands::{
-            backlight_mode, cra_read_capabilities, feature_flags_read_enabled,
+            backlight_mode, cra_read_capabilities, debug, feature_flags_read_enabled,
             feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write,
             key_press, key_release, led_mode, print_device_info, print_storage_block,
             print_storage_directory, time_get, time_set, write_storage_block,
         },
         types::{BacklightMode, DisplayMode, LedMode, PagerKey},
+        utils::decode_hex,
     },
     phoenix::{
         self,
@@ -209,7 +211,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         print_device_info(&mut port);
     }
 
-    match phoenix::tasks::try_authenticate(&mut port, args.auth, args.auth_hash) {
+    let auth_hash = if let Some(s) = args.auth_hash {
+        Some(decode_hex(s.as_str())?)
+    } else {
+        None
+    };
+
+    match phoenix::tasks::try_authenticate(&mut port, args.auth, auth_hash) {
         Ok(_) => {
             println!("Auth successful");
         }
@@ -248,7 +256,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 command_type,
                 data,
                 string_decode,
-            } => phoenix::tasks::debug_task(&mut port, command_type, data, string_decode),
+            } => debug(&mut port, command_type, data, string_decode),
             Commands::Led { mode } => led_mode(&mut port, mode),
             Commands::Backlight { mode } => backlight_mode(&mut port, mode),
             Commands::KeyPress { key } => key_press(&mut port, key),

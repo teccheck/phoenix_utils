@@ -1,12 +1,16 @@
-use std::{error::Error, num::ParseIntError};
+use std::error::Error;
 
 use chrono::NaiveDateTime;
 use serialport::SerialPort;
 
 use crate::{
-    cli::types::{BacklightMode, LedMode, PagerKey},
+    cli::{
+        types::{BacklightMode, LedMode, PagerKey},
+        utils::decode_hex,
+    },
     phoenix::{
         self,
+        encoding::decode_string,
         types::{
             FeatureFlag, FeatureFlagNotFoundError, StorageBlockId, StorageBlockLength,
             StorageBlockOffset,
@@ -14,11 +18,35 @@ use crate::{
     },
 };
 
-fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
-    (0..s.len())
-        .step_by(2)
-        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
-        .collect()
+pub fn debug(
+    port: &mut Box<dyn SerialPort>,
+    command_type: u16,
+    data: Option<String>,
+    string_decode: bool,
+) -> Result<(), Box<dyn Error>> {
+    let args = if let Some(d) = data {
+        decode_hex(&d)?
+    } else {
+        Vec::new()
+    };
+
+    let result = phoenix::commands::debug_command(port, command_type, args.as_slice());
+    match result {
+        Ok(data) => {
+            println!("Ok: {:X?}", data);
+
+            if string_decode {
+                println!("String: {}", decode_string(&data));
+            }
+        }
+        Err(e) => {
+            println!("Err: {:?}", e);
+        }
+    }
+
+    println!("Done");
+
+    Ok(())
 }
 
 pub fn print_device_info(port: &mut Box<dyn SerialPort>) {

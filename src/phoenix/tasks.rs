@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::Write, num::ParseIntError, path::Path};
+use std::{error::Error, fs::File, io::Write, path::Path};
 
 use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
@@ -6,43 +6,11 @@ use sha1::{Digest, Sha1};
 
 use crate::phoenix::{
     commands,
-    encoding::decode_string,
     types::{
         CRACapabilityFlags, DeviceInfo, FeatureFlag, PartialStorageBlock, StorageBlockId,
         StorageBlockInfo, StorageBlockLength, StorageBlockOffset,
     },
 };
-
-pub fn debug_task(
-    port: &mut Box<dyn SerialPort>,
-    command_type: u16,
-    data: Option<String>,
-    string_decode: bool,
-) -> Result<(), Box<dyn Error>> {
-    let args = if let Some(d) = data {
-        decode_hex(&d)?
-    } else {
-        Vec::new()
-    };
-
-    let result = commands::debug_command(port, command_type, args.as_slice());
-    match result {
-        Ok(data) => {
-            println!("Ok: {:X?}", data);
-
-            if string_decode {
-                println!("String: {}", decode_string(&data));
-            }
-        }
-        Err(e) => {
-            println!("Err: {:?}", e);
-        }
-    }
-
-    println!("Done");
-
-    Ok(())
-}
 
 pub fn dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     println!("Reading Storage directory. This might take a few seconds...");
@@ -50,12 +18,6 @@ pub fn dump_storage(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>
 
     for block in dir {
         let data = read_storage_block(port, block.id, 0, block.length);
-
-        //let text = if let Ok(real_data) = data {
-        //    String::from_utf8(real_data).unwrap_or_default()
-        //} else {
-        //    "[ERR]".to_string()
-        //};
 
         println!(
             "| {:>4x} | {:>7} | {:>6} | {:>5} | {:X?} |",
@@ -189,40 +151,27 @@ pub fn read_device_info(port: &mut Box<dyn SerialPort>) -> Result<DeviceInfo, Bo
 pub fn try_authenticate(
     port: &mut Box<dyn SerialPort>,
     password: Option<String>,
-    hash_string: Option<String>,
+    hash: Option<Vec<u8>>,
 ) -> Result<(), Box<dyn Error>> {
-    let caps = commands::lock_key::capability_read(port)?;
-
-    let needs_auth = caps.flags.contains(CRACapabilityFlags::LockKeyCommands)
-        || caps.flags.contains(CRACapabilityFlags::LockKeyCRACommands);
+    let needs_auth = check_has_cra_capabilities(
+        port,
+        CRACapabilityFlags::LockKeyCRACommands.or(CRACapabilityFlags::LockKeyCommands),
+    )?;
 
     if !needs_auth {
-        println!("Authentication not needed");
         return Ok(());
     }
 
-    println!("Trying to authenticate...");
-    if let Some(hash) = hash_string {
+    if let Some(hash) = hash {
         auth_hash_string(port, &hash)
     } else if let Some(password) = password {
         auth_password(port, password)
     } else {
-        auth_hash_string(port, "0000000000000000000000000000000000000000")
+        auth_hash_string(port, &[0_u8, 20])
     }
 }
 
-fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
-    (0..s.len())
-        .step_by(2)
-        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
-        .collect()
-}
-
-pub fn auth_hash_string(
-    port: &mut Box<dyn SerialPort>,
-    hash_string: &str,
-) -> Result<(), Box<dyn Error>> {
-    let hash = decode_hex(hash_string)?;
+pub fn auth_hash_string(port: &mut Box<dyn SerialPort>, hash: &[u8]) -> Result<(), Box<dyn Error>> {
     commands::lock_key::read_and_auth(port, &hash)
 }
 
@@ -233,8 +182,6 @@ pub fn auth_password(
     let mut hasher = Sha1::new();
     hasher.update(password);
     let hash = hasher.finalize();
-    println!("Password Hash: {:X}", hash);
-
     commands::lock_key::read_and_auth(port, &hash)
 }
 
