@@ -245,22 +245,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "de10a_utils"
-version = "0.1.0"
-dependencies = [
- "bitmask-enum",
- "byteorder",
- "chrono",
- "clap",
- "clap-num",
- "crc",
- "encoding",
- "serialport",
- "sha1",
- "strum",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -478,6 +462,22 @@ name = "once_cell_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
+
+[[package]]
+name = "phoenix_utils"
+version = "0.1.0"
+dependencies = [
+ "bitmask-enum",
+ "byteorder",
+ "chrono",
+ "clap",
+ "clap-num",
+ "crc",
+ "encoding",
+ "serialport",
+ "sha1",
+ "strum",
+]
 
 [[package]]
 name = "pkg-config"
