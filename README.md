@@ -1,4 +1,4 @@
-# DE10A Utils 📟
+# Phoenix Utils 📟
 
 This is a little project to interface with the DE10A pager hardware by [Swissphone](https://www.swissphone.com/), which is used in the BOSS 915 and BOSS 935 pagers. The command format should also work for other Swissphone pagers, as it's used by [PSWplus](https://www.swissphone.com/software-updates/), but I didn't test that.
 
