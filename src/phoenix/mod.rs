@@ -5,3 +5,4 @@ pub mod sci_frame_protocol;
 pub mod swion_result;
 pub mod tasks;
 pub mod types;
+pub mod update_frame_protocol;
