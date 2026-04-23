@@ -448,6 +448,18 @@ impl InvalidResponseTypeError {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct InvalidResponseData {}
+
+impl fmt::Display for InvalidResponseData {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Response was invalid")?;
+        Ok(())
+    }
+}
+
+impl Error for InvalidResponseData {}
+
 /// Not sure what they mean
 /// Also known as device generation
 #[derive(Debug, Display, FromRepr)]

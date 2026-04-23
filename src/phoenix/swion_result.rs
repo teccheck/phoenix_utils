@@ -86,6 +86,15 @@ impl SwionResult {
         }
     }
 
+    pub fn parse_update_frame(result: u8) -> SwionResult {
+        match result {
+            0 => SwionResult::Success,
+            0xED => SwionResult::AuthentificationError,
+            0xF4 => SwionResult::Locked,
+            _ => SwionResult::Error,
+        }
+    }
+
     pub fn is_error(&self) -> bool {
         !matches!(self, Self::Success)
     }

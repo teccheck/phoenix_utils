@@ -5,6 +5,7 @@ pub mod storage;
 pub mod sys;
 pub mod time;
 pub mod tools;
+pub mod update;
 
 use std::error::Error;
 
