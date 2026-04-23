@@ -180,6 +180,19 @@ pub enum CommandType {
     Tools2FlexTestMessage = 0x8180,
 }
 
+#[derive(Debug, FromRepr, Clone, Copy)]
+#[repr(u8)]
+pub enum UpdateFrameId {
+    Erase = 112,
+    Program,
+    Verify,
+    Check,
+    Reset,
+    Crc,
+    Ack = 128,
+    Dump, // Seems to take one byte as args (but gives ack with two bytes as response, always 81F4)
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Parser)]
 pub enum ResetType {
     Hardreset = 0,
