@@ -4,10 +4,7 @@ use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::{
-        send_command, check_response_result_default,
-        check_response_result_simple_inv, check_response_type,
-    },
+    commands::{check_response_result_simple_inv, check_response_type, send_command},
     encoding::decode_string,
     types::{CommandType, FeatureFlag},
 };
@@ -51,6 +48,6 @@ pub fn read_firmware_build_id(port: &mut Box<dyn SerialPort>) -> Result<String, 
 pub fn start_firmware_update(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysStartFirmwareUpdate, &[])?;
     let rsp = check_response_type(&rsp, CommandType::SysStartFirmwareUpdate)?;
-    check_response_result_default(rsp, "command_start_firmware_update")?;
+    check_response_result_simple_inv(rsp, "command_start_firmware_update")?;
     Ok(())
 }
