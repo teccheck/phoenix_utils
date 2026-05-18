@@ -158,6 +158,9 @@ pub enum Commands {
         utc: bool,
     },
 
+    /// Start firmware update mode
+    StartFirmwareUpdate {},
+
     /// Try out an arbitrary command code with optional data.
     /// Use carefully! Prepare for unforeseen consequences λ.
     Debug {
@@ -245,6 +248,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
             Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
+            Commands::StartFirmwareUpdate {  } => phoenix::commands::sys::start_firmware_update(&mut port),
         };
 
         match result {
