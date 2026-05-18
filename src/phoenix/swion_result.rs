@@ -91,6 +91,8 @@ impl SwionResult {
             0 => SwionResult::Success,
             0xED => SwionResult::AuthentificationError,
             0xF4 => SwionResult::Locked,
+            0xFC => SwionResult::NotSupported,
+            0xFD => SwionResult::DataInvalid,
             _ => SwionResult::Error,
         }
     }
