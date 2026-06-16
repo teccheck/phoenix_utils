@@ -189,6 +189,7 @@ pub enum UpdateFrameId {
     Check,
     Reset,
     Crc,
+    Unknown76, // Quite similar to crc
     Ack = 128,
     Dump, // Seems to take one byte as args (but gives ack with two bytes as response, always 81F4)
 }
