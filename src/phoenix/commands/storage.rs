@@ -4,15 +4,11 @@ use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
 use crate::phoenix::{
-    commands::{check_response_result_default, check_response_type, send_command},
-    swion_result::{SwionError, SwionResult},
-    types::{
+    checksum::CRC16, commands::{check_response_result_default, check_response_type, send_command}, swion_result::{SwionError, SwionResult}, types::{
         CommandType, PartialStorageBlock, ReadStorageBlock, StorageBlockId, StorageBlockInfo,
         StorageBlockLength, StorageBlockPermissions, StorageBlockVersion,
-    },
+    }
 };
-
-const CRC16: crc::Crc<u16> = crc::Crc::<u16>::new(&crc::CRC_16_KERMIT);
 
 pub fn delete_block(
     port: &mut Box<dyn SerialPort>,

@@ -2,16 +2,8 @@ use std::io::Error;
 
 use serialport::SerialPort;
 
-const CRC8: crc::Crc<u8> = crc::Crc::<u8>::new(&crc::Algorithm {
-    width: 8,
-    poly: 0x31,
-    init: 0xff,
-    refin: true,
-    refout: true,
-    xorout: 0x00,
-    check: 0x00,
-    residue: 0x00,
-});
+use crate::phoenix::checksum::CRC8;
+
 const FRAME_MARKER: u8 = 0x7E;
 const FRAME_ESCAPE: u8 = 0x7D;
 const FRAME_ESCAPE_XOR: u8 = 0x20;
