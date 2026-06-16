@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serialport::{Error, SerialPort};
 
-use crate::phoenix::types::{DeviceType, SerialConfig, SERIAL_CONFIG_1, SERIAL_CONFIG_2};
+use crate::phoenix::types::{DeviceType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, SerialConfig};
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
     let hello: [u8; 3] = [0x55, 0x7e, 0x55];
@@ -29,25 +29,34 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
     Ok(device_type)
 }
 
-fn try_init_connection(
+pub fn try_init_connection(
     path: &String,
     config: SerialConfig,
+    do_handshake: bool,
 ) -> Result<(Box<dyn SerialPort>, DeviceType), Error> {
     let mut serial_port = serialport::new(path, config.baudrate)
         .data_bits(config.databits)
         .parity(config.parity)
         .stop_bits(config.stopbits)
-        .timeout(Duration::from_millis(1000))
+        .timeout(Duration::from_millis(500))
         .open()?;
 
-    let device_type = handshake(&mut serial_port)?;
-    Ok((serial_port, device_type))
+    if do_handshake {
+        let device_type = handshake(&mut serial_port)?;
+        return Ok((serial_port, device_type));
+    }
+
+    Ok((serial_port, DeviceType::None))
 }
 
 pub fn init_connection(path: &String) -> Result<(Box<dyn SerialPort>, DeviceType), Error> {
-    if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_1) { return Ok(tuple) }
+    if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_1, true) {
+        return Ok(tuple);
+    }
 
-    if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_2) { return Ok(tuple) }
+    if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_2, true) {
+        return Ok(tuple);
+    }
 
     Err(Error {
         kind: serialport::ErrorKind::Unknown,

@@ -18,8 +18,11 @@ use crate::{
     },
     phoenix::{
         self,
-        raw_serial_protocol::init_connection,
-        types::{ResetType, StorageBlockId, StorageBlockLength, StorageBlockOffset},
+        raw_serial_protocol::{init_connection, try_init_connection},
+        types::{
+            ResetType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, StorageBlockId, StorageBlockLength,
+            StorageBlockOffset,
+        },
     },
 };
 
@@ -34,7 +37,15 @@ struct CmdArgs {
     )]
     port: String,
 
-    #[arg(short, long, default_value_t = true, help = "Show device info")]
+    #[arg(
+        short,
+        long,
+        default_value_t = 0,
+        help = "Serial config to use. 0 for auto, 1 for newer, 2 for older devices"
+    )]
+    serial_config: u8,
+
+    #[arg(short, long, default_value_t = false, help = "Show device info")]
     info: bool,
 
     #[arg(short, long, help = "Programming password")]
@@ -45,6 +56,14 @@ struct CmdArgs {
         help = "SHA1 hased programming password as hex string without spaces"
     )]
     auth_hash: Option<String>,
+
+    #[arg(
+        short,
+        long,
+        help = "Enables update mode for use if the device is in update mode. In update mode, no handshake is made. Only works together with the serial_config option",
+        default_value_t = false
+    )]
+    update: bool,
 
     #[command(subcommand)]
     command: Option<Commands>,
@@ -99,7 +118,9 @@ pub enum Commands {
     FlagsReadSupported,
 
     /// Write feature flags to the device (replaces the previous value)
-    FlagsWrite { flags: Vec<String> },
+    FlagsWrite {
+        flags: Vec<String>,
+    },
 
     /// Reads some random value. Not sure what that's for.
     FlagsReadUniqueId,
@@ -111,7 +132,9 @@ pub enum Commands {
     ResetPassword,
 
     /// Set a new programming password (only on firmware < 4)
-    SetPassword { password: String },
+    SetPassword {
+        password: String,
+    },
 
     /// Control the alarm LED (if there is one)
     Led {
@@ -161,6 +184,10 @@ pub enum Commands {
     /// Start firmware update mode
     StartFirmwareUpdate {},
 
+    UpdateReset {},
+
+    UpdateFrameTest {},
+
     /// Try out an arbitrary command code with optional data.
     /// Use carefully! Prepare for unforeseen consequences λ.
     Debug {
@@ -185,26 +212,36 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("Welcome to Phoenix Utils\n");
     println!("Trying port {}", args.port);
 
-    let (mut port, device_type) = init_connection(&args.port)?;
-    println!("Device Type: {:?}", device_type);
+    //phoenix::tasks::update_frame_test()?;
+    //return Ok(());
 
-    if args.info {
-        print_device_info(&mut port);
-    }
-
-    let auth_hash = if let Some(s) = args.auth_hash {
-        Some(decode_hex(s.as_str())?)
-    } else {
-        None
+    let (mut port, device_type) = match args.serial_config {
+        1 => try_init_connection(&args.port, SERIAL_CONFIG_1, !args.update)?,
+        2 => try_init_connection(&args.port, SERIAL_CONFIG_2, !args.update)?,
+        _ => init_connection(&args.port)?,
     };
 
-    match phoenix::tasks::try_authenticate(&mut port, args.auth, auth_hash) {
-        Ok(_) => {
-            println!("Auth successful");
+    if !args.update {
+        println!("Device Type: {:?}", device_type);
+    
+        if args.info {
+            print_device_info(&mut port);
         }
-        Err(e) => {
-            println!("Auth error: {}", e);
-            return Err(e);
+
+        let auth_hash = if let Some(s) = args.auth_hash {
+            Some(decode_hex(s.as_str())?)
+        } else {
+            None
+        };
+
+        match phoenix::tasks::try_authenticate(&mut port, args.auth, auth_hash) {
+            Ok(_) => {
+                println!("Auth successful");
+            }
+            Err(e) => {
+                println!("Auth error: {}", e);
+                return Err(e);
+            }
         }
     }
 
@@ -248,7 +285,11 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
             Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
-            Commands::StartFirmwareUpdate {  } => phoenix::commands::sys::start_firmware_update(&mut port),
+            Commands::StartFirmwareUpdate {} => {
+                phoenix::commands::sys::start_firmware_update(&mut port)
+            }
+            Commands::UpdateReset {  } => phoenix::commands::update::reset(&mut port),
+            Commands::UpdateFrameTest {} => phoenix::tasks::update_frame_test(&mut port),
         };
 
         match result {
