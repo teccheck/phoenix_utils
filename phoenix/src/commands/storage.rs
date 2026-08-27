@@ -3,11 +3,14 @@ use std::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
-use crate::phoenix::{
-    checksum::CRC16, commands::{check_response_result_default, check_response_type, send_command}, swion_result::{SwionError, SwionResult}, types::{
+use crate::{
+    checksum::CRC16,
+    commands::{check_response_result_default, check_response_type, send_command},
+    swion_result::{SwionError, SwionResult},
+    types::{
         CommandType, PartialStorageBlock, ReadStorageBlock, StorageBlockId, StorageBlockInfo,
         StorageBlockLength, StorageBlockPermissions, StorageBlockVersion,
-    }
+    },
 };
 
 pub fn delete_block(
@@ -183,7 +186,10 @@ pub fn ext_nvm_read(
 }
 
 // Class: ac3
-pub fn ext_nvm_write(port: &mut Box<dyn SerialPort>, write_blocks: &[PartialStorageBlock]) -> Result<(), Box<dyn Error>> {
+pub fn ext_nvm_write(
+    port: &mut Box<dyn SerialPort>,
+    write_blocks: &[PartialStorageBlock],
+) -> Result<(), Box<dyn Error>> {
     let mut args = Vec::new();
 
     for block in write_blocks {
@@ -202,7 +208,7 @@ pub fn ext_nvm_write(port: &mut Box<dyn SerialPort>, write_blocks: &[PartialStor
 
     println!("args: {:x?}", args);
 
-    let rsp = send_command(port, CommandType::StorageExtNvmWrite, &args)?;    
+    let rsp = send_command(port, CommandType::StorageExtNvmWrite, &args)?;
     let rsp = check_response_type(&rsp, CommandType::StorageExtNvmWrite)?;
     println!("rsp: {:x?}", rsp);
 
@@ -215,7 +221,11 @@ pub fn ext_nvm_write(port: &mut Box<dyn SerialPort>, write_blocks: &[PartialStor
         let result = SwionResult::parse_default(data[6]);
 
         if id != block.id || offset != block.offset || length != block.length || result.is_error() {
-            return Err(SwionError::new("storage_ext_nvm_write".to_string(), SwionResult::DataInvalid).into());
+            return Err(SwionError::new(
+                "storage_ext_nvm_write".to_string(),
+                SwionResult::DataInvalid,
+            )
+            .into());
         }
 
         index += 7;

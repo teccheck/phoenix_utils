@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serialport::{Error, SerialPort};
 
-use crate::phoenix::types::{DeviceType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, SerialConfig};
+use crate::types::{DeviceType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, SerialConfig};
 
 fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
     let hello: [u8; 3] = [0x55, 0x7e, 0x55];

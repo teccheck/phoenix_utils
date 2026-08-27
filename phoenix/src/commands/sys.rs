@@ -3,7 +3,7 @@ use std::error::Error;
 use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
-use crate::phoenix::{
+use crate::{
     commands::{check_response_result_simple_inv, check_response_type, send_command},
     encoding::decode_string,
     types::{CommandType, FeatureFlag},

@@ -1,0 +1,17 @@
+[package]
+name = "phoenix"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitmask-enum = "2.2.5"
+byteorder = "1.5.0"
+chrono = "0.4.43"
+clap = { version = "4.5.48", features = ["derive"] }
+clap-num = "1.2.0"
+crc = "3.3.0"
+encoding = "0.2.33"
+gtk4 = "0.11.4"
+serialport = "4.7.3"
+sha1 = "0.10.6"
+strum = { version = "0.27.2", features = ["derive"] }

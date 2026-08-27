@@ -5,25 +5,24 @@ mod utils;
 use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
 
+use phoenix::{
+    self,
+    raw_serial_protocol::{init_connection, try_init_connection},
+    types::{
+        ResetType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, StorageBlockId, StorageBlockLength,
+        StorageBlockOffset,
+    },
+};
+
 use crate::{
-    cli::{
-        commands::{
-            backlight_mode, cra_read_capabilities, debug, feature_flags_read_enabled,
-            feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write,
-            key_press, key_release, led_mode, print_device_info, print_storage_block,
-            print_storage_directory, time_get, time_set, write_storage_block,
-        },
-        types::{BacklightMode, DisplayMode, LedMode, PagerKey},
-        utils::decode_hex,
+    commands::{
+        backlight_mode, cra_read_capabilities, debug, feature_flags_read_enabled,
+        feature_flags_read_supported, feature_flags_read_unique_id, feature_flags_write, key_press,
+        key_release, led_mode, print_device_info, print_storage_block, print_storage_directory,
+        time_get, time_set, write_storage_block,
     },
-    phoenix::{
-        self,
-        raw_serial_protocol::{init_connection, try_init_connection},
-        types::{
-            ResetType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, StorageBlockId, StorageBlockLength,
-            StorageBlockOffset,
-        },
-    },
+    types::{BacklightMode, DisplayMode, LedMode, PagerKey},
+    utils::decode_hex,
 };
 
 #[derive(Parser)]
@@ -206,7 +205,7 @@ pub enum Commands {
     },
 }
 
-pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = CmdArgs::parse();
 
     println!("Welcome to Phoenix Utils\n");
@@ -223,7 +222,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     if !args.update {
         println!("Device Type: {:?}", device_type);
-    
+
         if args.info {
             print_device_info(&mut port);
         }
@@ -288,7 +287,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             Commands::StartFirmwareUpdate {} => {
                 phoenix::commands::sys::start_firmware_update(&mut port)
             }
-            Commands::UpdateReset {  } => phoenix::commands::update::reset(&mut port),
+            Commands::UpdateReset {} => phoenix::commands::update::reset(&mut port),
             Commands::UpdateFrameTest {} => phoenix::tasks::update_frame_test(&mut port),
         };
 

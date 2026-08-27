@@ -2,7 +2,7 @@ use std::error::Error;
 
 use serialport::SerialPort;
 
-use crate::phoenix::{
+use crate::{
     commands::{
         send_command, check_response_result_simple_inv, check_response_type,
     },

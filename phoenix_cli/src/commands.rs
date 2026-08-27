@@ -3,19 +3,18 @@ use std::error::Error;
 use chrono::NaiveDateTime;
 use serialport::SerialPort;
 
+use phoenix::{
+    self,
+    encoding::decode_string,
+    types::{
+        FeatureFlag, FeatureFlagNotFoundError, StorageBlockId, StorageBlockLength,
+        StorageBlockOffset,
+    },
+};
+
 use crate::{
-    cli::{
-        types::{BacklightMode, LedMode, PagerKey},
-        utils::decode_hex,
-    },
-    phoenix::{
-        self,
-        encoding::decode_string,
-        types::{
-            FeatureFlag, FeatureFlagNotFoundError, StorageBlockId, StorageBlockLength,
-            StorageBlockOffset,
-        },
-    },
+    types::{BacklightMode, LedMode, PagerKey},
+    utils::decode_hex,
 };
 
 pub fn debug(

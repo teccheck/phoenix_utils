@@ -4,7 +4,7 @@ use byteorder::{BigEndian, ByteOrder};
 use chrono::{Datelike, NaiveDate, NaiveDateTime, NaiveTime, Timelike};
 use serialport::SerialPort;
 
-use crate::phoenix::{
+use crate::{
     commands::{
         send_command, check_response_result_simple_inv, check_response_type,
     },

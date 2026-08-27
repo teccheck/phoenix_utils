@@ -1,0 +1,11 @@
+[package]
+name = "phoenix_cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+chrono = "0.4.45"
+clap = { version = "4.5.48", features = ["derive"] }
+clap-num = "1.2.0"
+phoenix = { path = "../phoenix" }
+serialport = "4.10.0"

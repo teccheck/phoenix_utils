@@ -2,7 +2,7 @@ use std::io::Error;
 
 use serialport::SerialPort;
 
-use crate::phoenix::checksum::CRC8;
+use crate::checksum::CRC8;
 
 const FRAME_MARKER: u8 = 0x7E;
 const FRAME_ESCAPE: u8 = 0x7D;

@@ -3,7 +3,7 @@ use std::error::Error;
 use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
-use crate::phoenix::{
+use crate::{
     swion_result::{SwionError, SwionResult},
     types::{InvalidResponseData, InvalidResponseTypeError, UpdateFrameId},
     update_frame_protocol,

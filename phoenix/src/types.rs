@@ -8,7 +8,7 @@ use clap::{Parser, ValueEnum};
 use serialport::{DataBits, Parity, StopBits};
 use strum::{Display, FromRepr};
 
-use crate::phoenix::swion_result::SwionResult;
+use crate::swion_result::SwionResult;
 
 /// This represents a command type (first encoded byte in sci frame)
 /// plus its command variant (third encoded byte in sci frame)

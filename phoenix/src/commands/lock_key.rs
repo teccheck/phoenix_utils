@@ -3,7 +3,7 @@ use std::error::Error;
 use byteorder::{BigEndian, ByteOrder};
 use serialport::SerialPort;
 
-use crate::phoenix::{
+use crate::{
     commands::{check_response_result_default, check_response_type, send_command},
     swion_result::SwionResult,
     types::{AuthError, CRACapabilities, CRACapabilityFlags, CommandType},

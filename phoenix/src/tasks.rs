@@ -4,8 +4,7 @@ use byteorder::{BigEndian, ByteOrder, LittleEndian};
 use serialport::SerialPort;
 use sha1::{Digest, Sha1};
 
-use crate::phoenix::{
-    self,
+use crate::{
     checksum::{CRC16_UPDATE, recover_second_word},
     commands,
     types::{
@@ -230,8 +229,7 @@ pub fn update_frame_test(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
 
     println!("CRC should be {:X}", first_entry_crc);
 
-    let result =
-        phoenix::commands::update::check(port, &[0xB4, 0x8C, 0x23, 0x19, 0x5F, 0x42, 0x38])?;
+    let result = commands::update::check(port, &[0xB4, 0x8C, 0x23, 0x19, 0x5F, 0x42, 0x38])?;
     println!("Res: {result}");
     sleep(Duration::from_millis(200));
 
@@ -249,7 +247,7 @@ pub fn update_frame_test(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
     //let data = read_section(port, start, end)?;
 
     let start = 0xD0;
-    let end  = 0xDF;
+    let end = 0xDF;
     let data = read_overview(port, start, end)?;
     let mut outfile = File::create(format!("overview_{:02X}_{:02X}.bin", start, end))?;
 
@@ -258,7 +256,11 @@ pub fn update_frame_test(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn E
     Ok(())
 }
 
-fn read_overview(port: &mut Box<dyn SerialPort>,  start: u8, end: u8) -> Result<Vec<u8>, Box<dyn Error>> {   
+fn read_overview(
+    port: &mut Box<dyn SerialPort>,
+    start: u8,
+    end: u8,
+) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut upper_addr: u8 = end;
 
     let mut data = Vec::new();
@@ -266,7 +268,7 @@ fn read_overview(port: &mut Box<dyn SerialPort>,  start: u8, end: u8) -> Result<
 
     while upper_addr >= start {
         let addr: u32 = (upper_addr as u32) << 12;
-        
+
         match get_dword(port, addr) {
             Ok(dword) => {
                 println!("[{:05X}] {:08X}", addr, dword);
@@ -284,7 +286,11 @@ fn read_overview(port: &mut Box<dyn SerialPort>,  start: u8, end: u8) -> Result<
     Ok(data)
 }
 
-fn read_section(port: &mut Box<dyn SerialPort>, start: u32, end: u32) -> Result<Vec<u8>, Box<dyn Error>> {
+fn read_section(
+    port: &mut Box<dyn SerialPort>,
+    start: u32,
+    end: u32,
+) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut data = Vec::new();
     data.resize((end - start + 1) as usize, 0);
 
@@ -305,9 +311,9 @@ fn read_section(port: &mut Box<dyn SerialPort>, start: u32, end: u32) -> Result<
 }
 
 fn get_dword(port: &mut Box<dyn SerialPort>, addr: u32) -> Result<u32, Box<dyn Error>> {
-    let sum1 = phoenix::commands::update::crc(port, addr, addr + 1)?;
+    let sum1 = commands::update::crc(port, addr, addr + 1)?;
     sleep(Duration::from_millis(100));
-    let sum2 = phoenix::commands::update::crc(port, addr, addr + 3)?;
+    let sum2 = commands::update::crc(port, addr, addr + 3)?;
     sleep(Duration::from_millis(100));
     let word1 = !sum1;
     let word2 = recover_second_word(word1, sum2).expect("Whoops");
