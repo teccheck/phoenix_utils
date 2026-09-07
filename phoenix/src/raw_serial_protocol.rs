@@ -30,7 +30,7 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
 }
 
 pub fn try_init_connection(
-    path: &String,
+    path: &str,
     config: SerialConfig,
     do_handshake: bool,
 ) -> Result<(Box<dyn SerialPort>, DeviceType), Error> {
@@ -49,7 +49,7 @@ pub fn try_init_connection(
     Ok((serial_port, DeviceType::None))
 }
 
-pub fn init_connection(path: &String) -> Result<(Box<dyn SerialPort>, DeviceType), Error> {
+pub fn init_connection(path: &str) -> Result<(Box<dyn SerialPort>, DeviceType), Error> {
     if let Ok(tuple) = try_init_connection(path, SERIAL_CONFIG_1, true) {
         return Ok(tuple);
     }

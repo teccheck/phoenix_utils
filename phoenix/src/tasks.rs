@@ -166,7 +166,7 @@ pub fn try_authenticate(
     if let Some(hash) = hash {
         auth_hash_string(port, &hash)
     } else if let Some(password) = password {
-        auth_password(port, password)
+        auth_password(port, &password)
     } else {
         auth_hash_string(port, &[0_u8, 20])
     }
@@ -178,7 +178,7 @@ pub fn auth_hash_string(port: &mut Box<dyn SerialPort>, hash: &[u8]) -> Result<(
 
 pub fn auth_password(
     port: &mut Box<dyn SerialPort>,
-    password: String,
+    password: &str,
 ) -> Result<(), Box<dyn Error>> {
     let mut hasher = Sha1::new();
     hasher.update(password);
@@ -192,7 +192,7 @@ pub fn reset_password(port: &mut Box<dyn SerialPort>) -> Result<(), Box<dyn Erro
 
 pub fn set_password(
     port: &mut Box<dyn SerialPort>,
-    password: String,
+    password: &str,
 ) -> Result<(), Box<dyn Error>> {
     let mut hasher = Sha1::new();
     hasher.update(password);

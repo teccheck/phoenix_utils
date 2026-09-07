@@ -89,7 +89,7 @@ pub fn write_storage_block(
     id: StorageBlockId,
     offset: StorageBlockOffset,
     length: StorageBlockLength,
-    data: String,
+    data: &str,
 ) -> Result<(), Box<dyn Error>> {
     let data = decode_hex(&data)?;
     phoenix::tasks::write_storage_block(port, id, offset, length, &data)
