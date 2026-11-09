@@ -13,6 +13,7 @@ use phoenix::{
         StorageBlockOffset,
     },
 };
+use serialport::SerialPortType;
 
 use crate::{
     commands::{
@@ -28,13 +29,8 @@ use crate::{
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct CmdArgs {
-    #[arg(
-        short,
-        long,
-        default_value = "/dev/ttyUSB0",
-        help = "Serial port to use"
-    )]
-    port: String,
+    #[arg(short, long, help = "Serial port to use")]
+    port: Option<String>,
 
     #[arg(
         short,
@@ -209,15 +205,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = CmdArgs::parse();
 
     println!("Welcome to Phoenix Utils\n");
-    println!("Trying port {}", args.port);
+
+    let Some(port_path) = args.port.or_else(|| {
+        let available = serialport::available_ports().ok()?;
+        let first = available.iter().find(|p| p.port_type != SerialPortType::Unknown)?;
+        Some(first.port_name.clone())
+    }) else {
+        println!("No port found");
+        return Ok(());
+    };
+
+    println!("Trying port {}", port_path);
 
     //phoenix::tasks::update_frame_test()?;
     //return Ok(());
 
     let (mut port, device_type) = match args.serial_config {
-        1 => try_init_connection(&args.port, SERIAL_CONFIG_1, !args.update)?,
-        2 => try_init_connection(&args.port, SERIAL_CONFIG_2, !args.update)?,
-        _ => init_connection(&args.port)?,
+        1 => try_init_connection(&port_path, SERIAL_CONFIG_1, !args.update)?,
+        2 => try_init_connection(&port_path, SERIAL_CONFIG_2, !args.update)?,
+        _ => init_connection(&port_path)?,
     };
 
     if !args.update {
