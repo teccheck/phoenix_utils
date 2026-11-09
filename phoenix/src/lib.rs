@@ -1,9 +1,7 @@
 pub mod checksum;
 pub mod commands;
 pub mod encoding;
-pub mod raw_serial_protocol;
-pub mod sci_frame_protocol;
+pub mod protocols;
 pub mod swion_result;
 pub mod tasks;
 pub mod types;
-pub mod update_frame_protocol;

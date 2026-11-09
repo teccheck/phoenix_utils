@@ -12,7 +12,7 @@ use std::error::Error;
 use serialport::SerialPort;
 
 use crate::{
-    sci_frame_protocol::{decode_frame, encode_frame, read_until_end},
+    protocols::sci_frame_protocol::{decode_frame, encode_frame, read_until_end},
     swion_result::{SwionError, SwionResult},
     types::{CommandType, InvalidResponseTypeError},
 };

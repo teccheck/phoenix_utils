@@ -4,9 +4,9 @@ use byteorder::{ByteOrder, LittleEndian};
 use serialport::SerialPort;
 
 use crate::{
+    protocols::update_frame_protocol,
     swion_result::{SwionError, SwionResult},
     types::{InvalidResponseData, InvalidResponseTypeError, UpdateFrameId},
-    update_frame_protocol,
 };
 
 pub fn debug_command(

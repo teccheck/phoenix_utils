@@ -7,7 +7,7 @@ use clap_num::maybe_hex;
 
 use phoenix::{
     self,
-    raw_serial_protocol::{init_connection, try_init_connection},
+    protocols::raw_serial_protocol::{init_connection, try_init_connection},
     types::{
         ResetType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, StorageBlockId, StorageBlockLength,
         StorageBlockOffset,
