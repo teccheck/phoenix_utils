@@ -91,7 +91,9 @@ pub fn read_until_end(port: &mut Box<dyn SerialPort>) -> Result<Vec<u8>, Error> 
     loop {
         let size = port.read(&mut buffer)?;
         data.extend_from_slice(&buffer[0..size]);
-        if buffer[size - 1] == FRAME_MARKER {
+
+        if data.len() > 1 && *data.last().unwrap() == FRAME_MARKER {
+        //if buffer[size - 1] == FRAME_MARKER {
             break;
         }
     }

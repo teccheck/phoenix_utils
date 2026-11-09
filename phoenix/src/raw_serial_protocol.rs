@@ -12,9 +12,9 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
 
     loop {
         port.write_all(&hello)?;
-        let size = port.read(&mut read_buf)?;
+        port.read_exact(&mut read_buf)?;
 
-        if size == 2 && read_buf.starts_with(&expected) {
+        if read_buf.starts_with(&expected) {
             println!("Handshake sucessful");
             break;
         }
