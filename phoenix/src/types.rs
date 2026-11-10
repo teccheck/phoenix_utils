@@ -19,7 +19,7 @@ use crate::swion_result::SwionResult;
 pub enum CommandType {
     SysReadFirmwareVersion = 0x0001,
     SysReadSerialNumber = 0x0002,
-    SysUnknown0003 = 0x0003,
+    SysWriteSerialNumber = 0x0003,
     // Used without any arguments. No clue how to continue after this
     SysStartFirmwareUpdate = 0x0004,
     SysReadFeatureFlags = 0x0006,

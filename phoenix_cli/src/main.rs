@@ -180,6 +180,10 @@ pub enum Commands {
     /// Start firmware update mode
     StartFirmwareUpdate {},
 
+    WriteSerialNumber {
+        serial: String,
+    },
+
     UpdateReset {},
 
     UpdateFrameTest {},
@@ -297,6 +301,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Commands::UpdateReset {} => phoenix::commands::update::reset(&mut port),
             Commands::UpdateFrameTest {} => phoenix::tasks::update_frame_test(&mut port),
+            Commands::WriteSerialNumber { serial } => phoenix::commands::sys::write_serial_number(&mut port, &serial),
         };
 
         match result {

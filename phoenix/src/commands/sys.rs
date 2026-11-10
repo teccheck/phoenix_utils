@@ -21,6 +21,12 @@ pub fn read_serial_number(port: &mut Box<dyn SerialPort>) -> Result<String, Box<
     Ok(decode_string(rsp))
 }
 
+pub fn write_serial_number(port: &mut Box<dyn SerialPort>, serial: &str) -> Result<(), Box<dyn Error>> {
+    let rsp = send_command(port, CommandType::SysWriteSerialNumber, &serial.as_bytes())?;
+    check_response_type(&rsp, CommandType::SysWriteSerialNumber)?;
+    Ok(())
+}
+
 pub fn read_feature_flags(port: &mut Box<dyn SerialPort>) -> Result<FeatureFlag, Box<dyn Error>> {
     let rsp = send_command(port, CommandType::SysReadFeatureFlags, &[])?;
     let rsp = check_response_type(&rsp, CommandType::SysReadFeatureFlags)?;
