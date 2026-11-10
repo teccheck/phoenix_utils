@@ -10,7 +10,10 @@ fn handshake(port: &mut Box<dyn SerialPort>) -> Result<DeviceType, Error> {
 
     let mut read_buf: [u8; 2] = [0; 2];
 
-    loop {
+    for _ in [0..10] {
+        // The clear seems to be important on some systems (perhaps because of the UART adapter?)
+        // It makes the handshake much more stable
+        port.clear(serialport::ClearBuffer::All)?;
         port.write_all(&hello)?;
         port.read_exact(&mut read_buf)?;
 
