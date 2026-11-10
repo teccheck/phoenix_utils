@@ -112,8 +112,9 @@ pub enum Commands {
     /// Get all features that can be enabled
     FlagsReadSupported,
 
-    /// Write feature flags to the device (replaces the previous value)
+    /// Write feature flags to the device (does not add them, but replaces the previous value)
     FlagsWrite {
+        /// Flags to be enabled, seperated by spaces.
         flags: Vec<String>,
     },
 
@@ -204,7 +205,9 @@ pub enum Commands {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = CmdArgs::parse();
 
-    println!("Welcome to Phoenix Utils\n");
+    println!("Welcome to Phoenix Utils");
+    println!("Use --help to see what commands are available.");
+    println!();
 
     let Some(port_path) = args.port.or_else(|| {
         let available = serialport::available_ports().ok()?;
@@ -216,9 +219,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     println!("Trying port {}", port_path);
-
-    //phoenix::tasks::update_frame_test()?;
-    //return Ok(());
 
     let (mut port, device_type) = match args.serial_config {
         1 => try_init_connection(&port_path, SERIAL_CONFIG_1, !args.update)?,
@@ -248,6 +248,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err(e);
             }
         }
+
+        println!();
     }
 
     if let Some(command) = args.command {
@@ -298,7 +300,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         match result {
-            Ok(_) => println!("Successful"),
+            Ok(_) => {},
             Err(e) => println!("Error: {}", e),
         }
     }
