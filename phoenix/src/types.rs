@@ -25,9 +25,10 @@ pub enum CommandType {
     SysReadFeatureFlags = 0x0006,
     SysWriteFeatureFlags = 0x007,
     SysReadFirmwareBuildId = 0x0008,
-    // The following three are seemingly not for DE10A
+    // The following are seemingly not for DE10A
     SysReadProductStringApplication = 0x0009,
     SysReadProductStringBootloader = 0x000A,
+    SysStartFirmwareUpdateWithSignature = 0x000B,
     SysReadHeapStatistics = 0x0060,
 
     BootReboot = 0x0100,

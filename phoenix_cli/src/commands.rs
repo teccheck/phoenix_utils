@@ -174,11 +174,11 @@ pub fn backlight_mode(
 }
 
 pub fn key_press(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), Box<dyn Error>> {
-    phoenix::commands::key_press(port, key as u8)
+    phoenix::commands::misc::key_press(port, key as u8)
 }
 
 pub fn key_release(port: &mut Box<dyn SerialPort>, key: PagerKey) -> Result<(), Box<dyn Error>> {
-    phoenix::commands::key_release(port, key as u8)
+    phoenix::commands::misc::key_release(port, key as u8)
 }
 
 pub fn time_set(

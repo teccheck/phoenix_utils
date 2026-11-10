@@ -1,6 +1,7 @@
 pub mod boot;
 pub mod feature_flags;
 pub mod lock_key;
+pub mod misc;
 pub mod storage;
 pub mod sys;
 pub mod time;
@@ -98,22 +99,3 @@ fn check_response_result<'a, F: Fn(u8) -> SwionResult>(
     Ok(&resp[1..])
 }
 
-pub fn key_press(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::KeyPress, &[key])?;
-    check_response_type(&rsp, CommandType::KeyPress)?;
-    check_response_result_simple_inv(&rsp, "command_key_press")?;
-    Ok(())
-}
-
-pub fn key_release(port: &mut Box<dyn SerialPort>, key: u8) -> Result<(), Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::KeyRelease, &[key])?;
-    check_response_type(&rsp, CommandType::KeyRelease)?;
-    check_response_result_simple_inv(&rsp, "command_key_release")?;
-    Ok(())
-}
-
-pub fn display_test_mode(port: &mut Box<dyn SerialPort>, mode: u8) -> Result<(), Box<dyn Error>> {
-    let rsp = send_command(port, CommandType::DisplayTestMode, &[mode])?;
-    check_response_type(&rsp, CommandType::DisplayTestMode)?;
-    Ok(())
-}

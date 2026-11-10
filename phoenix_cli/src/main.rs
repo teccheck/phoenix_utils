@@ -6,9 +6,7 @@ use clap::{Parser, Subcommand};
 use clap_num::maybe_hex;
 
 use phoenix::{
-    self,
-    protocols::raw_serial_protocol::{init_connection, try_init_connection},
-    types::{
+    self, commands::misc::send_test_message, protocols::raw_serial_protocol::{init_connection, try_init_connection}, types::{
         ResetType, SERIAL_CONFIG_1, SERIAL_CONFIG_2, StorageBlockId, StorageBlockLength,
         StorageBlockOffset,
     },
@@ -180,6 +178,12 @@ pub enum Commands {
     /// Start firmware update mode
     StartFirmwareUpdate {},
 
+    SendTestMessage {
+        address: u32,
+        sub: u8,
+        text: Option<String>,
+    },
+
     WriteSerialNumber {
         serial: String,
     },
@@ -292,7 +296,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Commands::KeyRelease { key } => key_release(&mut port, key),
             Commands::KeyClick => phoenix::commands::tools::key_click(&mut port),
             Commands::Display { mode } => {
-                phoenix::commands::display_test_mode(&mut port, mode as u8)
+                phoenix::commands::misc::display_test_mode(&mut port, mode as u8)
             }
             Commands::TimeSet { time } => time_set(&mut port, time),
             Commands::TimeGet { utc } => time_get(&mut port, utc),
@@ -301,6 +305,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Commands::UpdateReset {} => phoenix::commands::update::reset(&mut port),
             Commands::UpdateFrameTest {} => phoenix::tasks::update_frame_test(&mut port),
+            Commands::SendTestMessage { address, sub, text } => send_test_message(&mut port, address, sub, &text.unwrap_or_else(|| String::new())),
             Commands::WriteSerialNumber { serial } => phoenix::commands::sys::write_serial_number(&mut port, &serial),
         };
 
