@@ -478,18 +478,18 @@ pub enum DeviceType {
     /// Answers with 0x56 to the initial handshake
     DE10A,
 
-    /// Unknown device type
+    /// Seems to be the type for DE12A hardware
     /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
     /// Supports encrypted dump
     /// Answers with 0x57 to the initial handshake
-    D,
+    DE12A,
 
     /// Unknown device type
     /// Supports encrypted dump
     /// Answers with 0x58 to the initial handshake
     E,
 
-    /// Unknown device type
+    /// Unknown device type, maybe DE20A, DE22A, DE25A?
     /// Uses serial config 1 (460800 Baud, 8 Data bits, 1 Stop bit, Parity 0)
     /// Answers with 0x59 to the initial handshake
     F,
@@ -501,6 +501,7 @@ impl DeviceType {
     }
 }
 
+#[derive(Debug)]
 pub struct SerialConfig {
     pub baudrate: u32,
     pub databits: DataBits,
